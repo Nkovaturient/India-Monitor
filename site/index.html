@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>India Monitor — Facts before opinions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --bg:#0A0C10; --panel:#12151B; --panel-2:#171B22; --border:#242A33;
+    --ink:#E9EBEF; --ink-dim:#8B93A1; --ink-faint:#565E6B;
+    --saffron:#E08D3C; --saffron-dim:#8A6236;
+    --green:#2E9E6E; --green-dim:#1D5E43;
+    --navy:#5D82BE; --red:#C0614F; --radius:3px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:radial-gradient(ellipse 900px 500px at 8% -10%, rgba(224,141,60,0.07), transparent),
+               radial-gradient(ellipse 900px 500px at 95% 0%, rgba(46,158,110,0.06), transparent), var(--bg);
+    color:var(--ink); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh;
+  }
+  ::selection{ background:var(--saffron); color:#12151A; }
+  a{ color:var(--navy); }
+  :focus-visible{ outline:2px solid var(--saffron); outline-offset:2px; }
+  .mono{ font-family:'JetBrains Mono',monospace; }
+
+  .topbar{ display:flex; align-items:center; justify-content:space-between; padding:18px 28px;
+    border-bottom:1px solid var(--border); position:sticky; top:0; z-index:50;
+    background:rgba(10,12,16,0.92); backdrop-filter:blur(8px); flex-wrap:wrap; gap:10px; }
+  .brand{ display:flex; align-items:center; gap:14px; }
+  .tricolor{ width:5px; height:38px; border-radius:2px; overflow:hidden; display:flex; flex-direction:column; flex-shrink:0; }
+  .tricolor span{ flex:1; } .tricolor .s1{background:var(--saffron);} .tricolor .s2{background:#e9e6dc;} .tricolor .s3{background:var(--green);}
+  .brand-text h1{ font-family:'Newsreader',serif; font-weight:600; font-size:21px; margin:0; letter-spacing:0.3px; line-height:1.1; }
+  .brand-text p{ margin:2px 0 0; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--ink-dim); font-family:'JetBrains Mono',monospace; }
+  .meta{ display:flex; align-items:center; gap:14px; font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--ink-dim); }
+  .live-badge{ border:1px solid var(--border); padding:5px 10px; border-radius:20px; letter-spacing:0.5px; display:flex; align-items:center; gap:6px; }
+  .live-badge .dot{ width:6px; height:6px; border-radius:50%; background:var(--green); display:inline-block; animation:pulse 2s infinite; }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.3;} }
+  .clock{ min-width:70px; text-align:right; }
+
+  .tabs{ display:flex; gap:2px; padding:0 28px; border-bottom:1px solid var(--border); overflow-x:auto; background:rgba(255,255,255,0.01); }
+  .tab{ background:none; border:none; color:var(--ink-dim); font-family:'JetBrains Mono',monospace; font-size:12.5px; letter-spacing:1px;
+    text-transform:uppercase; padding:14px 16px; cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; transition:color .15s,border-color .15s; }
+  .tab:hover{ color:var(--ink); } .tab.active{ color:var(--saffron); border-bottom-color:var(--saffron); }
+
+  main{ max-width:1080px; margin:0 auto; padding:36px 28px 80px; }
+  .panel{ display:none; animation:fade .35s ease; } .panel.active{ display:block; }
+  @keyframes fade{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;} }
+
+  .lede{ font-family:'Newsreader',serif; font-size:19px; line-height:1.55; color:var(--ink); max-width:680px; margin:0 0 30px; font-weight:400; }
+  .lede em{ color:var(--saffron); font-style:normal; }
+  .section-label{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--ink-faint); margin:0 0 8px; }
+  h2.page-title{ font-family:'Newsreader',serif; font-size:30px; font-weight:600; margin:0 0 6px; }
+
+  .story{ border:1px solid var(--border); border-radius:var(--radius); background:var(--panel); margin-bottom:16px; overflow:hidden; }
+  .story-head{ padding:20px 22px; cursor:pointer; display:flex; justify-content:space-between; gap:18px; }
+  .story-head:hover{ background:var(--panel-2); }
+  .story-tags{ display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
+  .tag{ font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:1px; text-transform:uppercase; padding:3px 8px; border-radius:20px; border:1px solid var(--border); color:var(--ink-dim); }
+  .tag.gov{ color:var(--saffron); border-color:var(--saffron-dim); }
+  .tag.status-jpc{ color:var(--navy); border-color:var(--navy); }
+  .tag.status-draft{ color:var(--ink-dim); }
+  .tag.status-auto{ color:var(--green); border-color:var(--green-dim); }
+  .story h3{ font-family:'Newsreader',serif; font-size:24px; font-weight:600; margin:0 0 8px; }
+  .story .dek{ color:var(--ink-dim); font-size:14.5px; line-height:1.55; margin:0; max-width:600px; }
+  .story-toggle{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-faint); white-space:nowrap; align-self:flex-start; padding-top:2px; }
+  .story-body{ display:none; padding:0 22px 26px; border-top:1px solid var(--border); }
+  .story.open .story-body{ display:block; }
+  .story.open .story-toggle::after{ content:" [\2013]"; } .story-toggle::after{ content:" [+]"; }
+
+  .rail{ margin:24px 0; padding-left:4px; }
+  .rail .station{ display:flex; gap:16px; position:relative; padding-bottom:20px; }
+  .rail .station:last-child{ padding-bottom:0; }
+  .rail .station::before{ content:""; position:absolute; left:5px; top:16px; bottom:-4px; width:1px; background:var(--border); }
+  .rail .station:last-child::before{ display:none; }
+  .rail .dot{ width:11px; height:11px; border-radius:50%; background:var(--bg); border:2px solid var(--saffron); flex-shrink:0; margin-top:3px; z-index:1; }
+  .rail .date{ display:block; font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--saffron); margin-bottom:4px; }
+  .rail p{ margin:0; font-size:14px; line-height:1.55; color:var(--ink); max-width:600px; }
+
+  .split{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:22px 0; }
+  @media (max-width:700px){ .split{ grid-template-columns:1fr; } }
+  .box{ background:var(--panel-2); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; }
+  .box h4{ margin:0 0 10px; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; font-family:'JetBrains Mono',monospace; color:var(--ink-faint); }
+  .box p, .box li{ font-size:13.5px; line-height:1.6; color:var(--ink-dim); margin:0 0 8px; }
+  .box.for h4{ color:var(--green); } .box.against h4{ color:var(--red); }
+  .box ul{ margin:0; padding-left:16px; }
+
+  .callout{ background:rgba(224,141,60,0.06); border:1px solid var(--saffron-dim); border-radius:var(--radius); padding:14px 18px; font-size:13.5px; color:var(--ink); margin:18px 0; line-height:1.6; }
+  .callout strong{ color:var(--saffron); }
+  .src{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-faint); margin-top:18px; }
+
+  .stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; margin-bottom:28px; }
+  @media (max-width:700px){ .stat-grid{ grid-template-columns:repeat(2,1fr); } }
+  .stat{ background:var(--panel); padding:18px 16px; }
+  .stat .v{ font-family:'Newsreader',serif; font-size:26px; font-weight:600; color:var(--ink); }
+  .stat .l{ font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--ink-faint); margin-top:4px; }
+
+  .bar-row{ margin-bottom:14px; }
+  .bar-top{ display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px; }
+  .bar-top .name{ color:var(--ink); } .bar-top .val{ font-family:'JetBrains Mono',monospace; color:var(--ink-dim); font-size:12px; }
+  .bar-track{ height:8px; background:var(--panel-2); border-radius:20px; overflow:hidden; border:1px solid var(--border); }
+  .bar-fill{ height:100%; border-radius:20px; background:linear-gradient(90deg,var(--saffron-dim),var(--saffron)); }
+
+  table{ width:100%; border-collapse:collapse; font-size:13.5px; }
+  th{ text-align:left; font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--ink-faint); padding:10px 12px; border-bottom:1px solid var(--border); }
+  td{ padding:12px; border-bottom:1px solid var(--border); color:var(--ink-dim); vertical-align:top; }
+  td.primary{ color:var(--ink); }
+  tr:hover td{ background:rgba(255,255,255,0.015); }
+  .pill{ font-family:'JetBrains Mono',monospace; font-size:10.5px; padding:3px 9px; border-radius:20px; border:1px solid var(--border); white-space:nowrap; }
+  .pill.pass{ color:var(--green); border-color:var(--green-dim); } .pill.wait{ color:var(--saffron); border-color:var(--saffron-dim); } .pill.new{ color:var(--navy); border-color:var(--navy); } .pill.jpc{ color:var(--navy); border-color:var(--navy); }
+
+  .rank-card{ display:flex; justify-content:space-between; gap:16px; padding:16px 0; border-bottom:1px solid var(--border); }
+  .rank-card:last-child{ border-bottom:none; }
+  .rank-left h4{ margin:0 0 4px; font-size:15px; font-weight:600; color:var(--ink); }
+  .rank-left p{ margin:0; font-size:13px; color:var(--ink-dim); max-width:480px; line-height:1.5; }
+  .rank-right{ text-align:right; flex-shrink:0; min-width:110px; }
+  .rank-right .num{ font-family:'Newsreader',serif; font-size:24px; font-weight:600; }
+  .rank-right .trend{ font-family:'JetBrains Mono',monospace; font-size:11px; }
+  .trend.up{ color:var(--green); } .trend.down{ color:var(--red); } .trend.flat{ color:var(--ink-faint); }
+
+  .const-card{ background:var(--panel); border:1px solid var(--border); border-radius:var(--radius); padding:20px 22px; margin-bottom:14px; }
+  .const-card .article{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--saffron); letter-spacing:0.5px; margin-bottom:8px; text-transform:uppercase; }
+  .const-card h4{ font-family:'Newsreader',serif; font-size:19px; margin:0 0 10px; font-weight:600; }
+  .const-card blockquote{ margin:12px 0; padding:10px 16px; border-left:2px solid var(--saffron); font-family:'Newsreader',serif; font-style:italic; font-size:15px; color:var(--ink); }
+  .const-card p{ font-size:13.5px; color:var(--ink-dim); line-height:1.6; margin:0; }
+  .const-card .cite{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-faint); margin-top:10px; display:block; }
+
+  .wire-item{ display:flex; gap:14px; padding:13px 0; border-bottom:1px solid var(--border); }
+  .wire-item .t{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-faint); white-space:nowrap; padding-top:2px; }
+  .wire-item a{ color:var(--ink); text-decoration:none; font-size:13.5px; line-height:1.5; }
+  .wire-item a:hover{ color:var(--saffron); }
+  .wire-item .stale{ color:var(--ink-faint); text-decoration:line-through; }
+  .filter-row{ display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+  .filter-btn{ font-family:'JetBrains Mono',monospace; font-size:11px; background:none; border:1px solid var(--border); color:var(--ink-dim); padding:6px 12px; border-radius:20px; cursor:pointer; }
+  .filter-btn.active{ color:var(--saffron); border-color:var(--saffron-dim); }
+
+  .skel{ background:linear-gradient(90deg,var(--panel) 25%,var(--panel-2) 50%,var(--panel) 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:var(--radius); height:64px; margin-bottom:12px; }
+  @keyframes shimmer{ 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
+  .empty{ font-size:13.5px; color:var(--ink-faint); padding:24px 0; }
+
+  .setup-banner{ background:rgba(192,97,79,0.08); border:1px solid var(--red); border-radius:var(--radius); padding:18px 20px; margin-bottom:28px; font-size:13.5px; line-height:1.7; color:var(--ink); }
+  .setup-banner code{ background:var(--panel-2); padding:2px 6px; border-radius:3px; font-family:'JetBrains Mono',monospace; font-size:12px; }
+
+  .footer-note{ margin-top:50px; padding-top:20px; border-top:1px solid var(--border); font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--ink-faint); line-height:1.8; }
+  .links-row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+  .link-chip{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--ink-dim); border:1px solid var(--border); padding:7px 12px; border-radius:20px; }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="tricolor"><span class="s1"></span><span class="s2"></span><span class="s3"></span></span>
+    <div class="brand-text"><h1>INDIA MONITOR</h1><p>facts before opinions</p></div>
+  </div>
+  <div class="meta">
+    <span class="live-badge"><span class="dot"></span><span id="live-label">LIVE · CONNECTING…</span></span>
+    <span class="clock mono" id="clock">--:--:-- IST</span>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab active" data-tab="news">News</button>
+  <button class="tab" data-tab="budget">Budget</button>
+  <button class="tab" data-tab="parliament">Parliament</button>
+  <button class="tab" data-tab="markets">Markets</button>
+  <button class="tab" data-tab="rankings">Rankings</button>
+  <button class="tab" data-tab="constitution">Constitution</button>
+</nav>
+
+<main>
+  <div id="setup-banner" style="display:none;" class="setup-banner"></div>
+
+  <section id="news" class="panel active">
+    <p class="section-label">Flagship module · live</p>
+    <p class="lede">Stories worth actually understanding — chosen because they touch <em>education</em>, <em>power</em>, and <em>governance</em>. Open one to see how it started, what's contested, and what you can do. New items are checked twice a day; anything auto-tracked is labelled as such.</p>
+    <div id="stories-list"><div class="skel"></div><div class="skel"></div></div>
+
+    <p class="section-label" style="margin-top:36px;">Wire feed — raw, unedited</p>
+    <div class="filter-row" id="wire-filters">
+      <button class="filter-btn active" data-range="1">Today</button>
+      <button class="filter-btn" data-range="7">This week</button>
+      <button class="filter-btn" data-range="9999">All time</button>
+    </div>
+    <div id="wire-list"><div class="skel"></div></div>
+  </section>
+
+  <section id="budget" class="panel">
+    <p class="section-label">Where the money goes</p>
+    <h2 class="page-title">Union Budget 2026–27</h2>
+    <p class="lede" style="font-size:16px;">Presented 1 February 2026 by Finance Minister Nirmala Sitharaman.</p>
+    <div class="stat-grid" id="budget-stats"></div>
+    <div class="callout"><strong>In plain terms —</strong> a <em>fiscal deficit</em> means the government spends more than it earns in a year; <em>capital expenditure</em> is money spent building things that last, like roads and hospitals; <em>debt-to-GDP</em> compares what the government owes to the size of the whole economy, like a loan compared to your annual income.</div>
+    <p class="section-label" style="margin-top:32px;">How the budget breaks down</p>
+    <div id="budget-bars"></div>
+    <p class="src">Seeded once a year, at Budget time — see README for how to refresh.</p>
+  </section>
+
+  <section id="parliament" class="panel">
+    <p class="section-label">18th Lok Sabha</p>
+    <h2 class="page-title">Bill tracker</h2>
+    <table><thead><tr><th>Bill</th><th>Touches</th><th>Stage</th></tr></thead><tbody id="bill-table-body"></tbody></table>
+    <div class="links-row">
+      <span class="link-chip">→ sansad.in (Digital Sansad)</span>
+      <span class="link-chip">→ prsindia.org/billtrack</span>
+      <span class="link-chip">→ mpa.gov.in</span>
+    </div>
+  </section>
+
+  <section id="markets" class="panel">
+    <p class="section-label">Indian equities</p>
+    <h2 class="page-title">Markets snapshot</h2>
+    <div class="stat-grid" style="grid-template-columns:repeat(2,1fr);" id="market-stats"></div>
+    <div class="callout" id="market-note"></div>
+    <p class="src">Auto-fetched twice daily via Yahoo Finance. Not investment advice.</p>
+  </section>
+
+  <section id="rankings" class="panel">
+    <p class="section-label">Where India stands</p>
+    <h2 class="page-title">Global index rankings</h2>
+    <div id="rankings-list"></div>
+  </section>
+
+  <section id="constitution" class="panel">
+    <p class="section-label">Constitutional lens</p>
+    <h2 class="page-title">The provisions behind the news</h2>
+    <p class="lede" style="font-size:16px;">Not invented opinions from historical figures about today's headlines — the actual constitutional text and record that explain <em>why</em> things work the way they do.</p>
+    <div id="constitution-list"></div>
+  </section>
+
+  <div class="footer-note">
+    <b>Live feed.</b> Refreshed twice daily from official sources only — Press Information Bureau and market data.
+  </div>
+</main>
+
+<script>
+// ======================= CONFIG =======================
+const SUPABASE_URL = "https://ngnrvkpoizmmaqxcinls.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5nbnJ2a3BvaXptbWFxeGNpbmxzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQ5NjMwNTAsImV4cCI6MjEwMDUzOTA1MH0.0uaH22sQAr5dsyy4v7tMk6IHpLnEJhpS6GF2Uhw-BH8";
+// ========================================================================
+
+const configured = !SUPABASE_URL.startsWith("YOUR_") && !SUPABASE_ANON_KEY.startsWith("YOUR_");
+let supa = null;
+if (configured) {
+  supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+}
+
+function showSetupBanner(msg) {
+  const el = document.getElementById('setup-banner');
+  el.style.display = 'block';
+  el.innerHTML = msg;
+  document.getElementById('live-label').textContent = 'NOT CONNECTED';
+  document.querySelector('.live-badge .dot').style.background = 'var(--red)';
+}
+
+if (!configured) {
+  showSetupBanner(`<strong style="color:var(--red)">Supabase isn't connected yet.`);
+}
+
+// Clock (IST)
+function tick(){
+  const ist = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Kolkata'}));
+  const p = n => String(n).padStart(2,'0');
+  document.getElementById('clock').textContent = `${p(ist.getHours())}:${p(ist.getMinutes())}:${p(ist.getSeconds())} IST`;
+}
+tick(); setInterval(tick,1000);
+
+// Tabs
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+});
+
+function toggleStory(el){ el.classList.toggle('open'); }
+function esc(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtDate(d){ if(!d) return ''; return new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}); }
+
+// ----------------------- NEWS: stories + stations -----------------------
+async function loadStories(){
+  const list = document.getElementById('stories-list');
+  if (!supa) { list.innerHTML = '<p class="empty">Connect Supabase to load stories.</p>'; return; }
+  try {
+    const { data: stories, error } = await supa.from('stories').select('*').order('updated_at', {ascending:false});
+    if (error) throw error;
+    if (!stories || !stories.length) { list.innerHTML = '<p class="empty">No stories yet — the first Action run will populate this.</p>'; return; }
+
+    const { data: stations } = await supa.from('story_stations').select('*').order('station_date', {ascending:true});
+    const byStory = {};
+    (stations||[]).forEach(s => { (byStory[s.story_slug] ||= []).push(s); });
+
+    list.innerHTML = stories.map(s => {
+      const statusTagClass = s.status_kind === 'jpc' ? 'status-jpc' : s.status_kind === 'auto' ? 'status-auto' : 'status-draft';
+      const rail = (byStory[s.slug]||[]).map(st => `
+        <div class="station"><span class="dot"></span><div>
+          <span class="date">${fmtDate(st.station_date)}</span><p>${esc(st.station_text)}</p>
+        </div></div>`).join('');
+      const forBox = (s.for_points||[]).length ? `<div class="box for"><h4>The case for it</h4><ul>${(s.for_points||[]).map(p=>`<li>${esc(p)}</li>`).join('')}</ul></div>` : '';
+      const againstBox = (s.against_points||[]).length ? `<div class="box against"><h4>What critics raise</h4><ul>${(s.against_points||[]).map(p=>`<li>${esc(p)}</li>`).join('')}</ul></div>` : '';
+      return `
+      <article class="story" id="story-${s.slug}">
+        <div class="story-head" onclick="toggleStory(document.getElementById('story-${s.slug}'))">
+          <div>
+            <div class="story-tags">
+              ${(s.tags||[]).map(t=>`<span class="tag gov">${esc(t)}</span>`).join('')}
+              <span class="tag ${statusTagClass}">${esc(s.status_label||'')}</span>
+              ${s.auto_tracked ? '<span class="tag status-auto">auto-tracked</span>' : ''}
+            </div>
+            <h3>${esc(s.title)}</h3>
+            <p class="dek">${esc(s.dek||'')}</p>
+          </div>
+          <span class="story-toggle mono">TIMELINE</span>
+        </div>
+        <div class="story-body">
+          <p class="section-label" style="margin-top:20px;">How this got here</p>
+          <div class="rail">${rail || '<p style="color:var(--ink-faint);font-size:13px;">No dated stations yet.</p>'}</div>
+          ${s.current_status ? `<div class="callout"><strong>Current status —</strong> ${esc(s.current_status)}</div>` : ''}
+          ${(forBox || againstBox) ? `<div class="split">${forBox}${againstBox}</div>` : ''}
+          ${s.what_to_do ? `<p class="section-label">What you can actually do</p><p style="font-size:13.5px;color:var(--ink-dim);line-height:1.6;max-width:640px;">${esc(s.what_to_do)}</p>` : ''}
+        </div>
+      </article>`;
+    }).join('');
+  } catch (e) {
+    list.innerHTML = `<p class="empty">Couldn't load stories (${esc(e.message||String(e))}).</p>`;
+  }
+}
+
+// ----------------------- NEWS: wire feed -----------------------
+let currentWireRange = 1;
+async function loadWire(){
+  const list = document.getElementById('wire-list');
+  if (!supa) { list.innerHTML = '<p class="empty">Connect Supabase to load the wire feed.</p>'; return; }
+  list.innerHTML = '<div class="skel"></div><div class="skel"></div>';
+  try {
+    const cutoff = new Date(Date.now() - currentWireRange*24*60*60*1000).toISOString();
+    let q = supa.from('raw_items').select('*').order('fetched_at', {ascending:false}).limit(60);
+    if (currentWireRange < 9999) q = q.gte('fetched_at', cutoff);
+    const { data, error } = await q;
+    if (error) throw error;
+    if (!data || !data.length) { list.innerHTML = '<p class="empty">Nothing in this window yet. The Action runs twice a day — try "All time".</p>'; return; }
+    list.innerHTML = data.map(it => `
+      <div class="wire-item">
+        <span class="t">${fmtDate(it.published_at || it.fetched_at)}</span>
+        <a href="${esc(it.link)}" target="_blank" rel="noopener" class="${it.is_current === false ? 'stale' : ''}">${esc(it.title)}</a>
+      </div>`).join('');
+  } catch (e) {
+    list.innerHTML = `<p class="empty">Couldn't load the wire feed (${esc(e.message||String(e))}).</p>`;
+  }
+}
+document.querySelectorAll('#wire-filters .filter-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#wire-filters .filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentWireRange = Number(btn.dataset.range);
+    loadWire();
+  });
+});
+
+// ----------------------- BUDGET -----------------------
+async function loadBudget(){
+  if (!supa) return;
+  try {
+    const { data: facts } = await supa.from('budget_facts').select('*').order('sort_order');
+    document.getElementById('budget-stats').innerHTML = (facts||[]).map(f=>
+      `<div class="stat"><div class="v">${esc(f.value)}</div><div class="l">${esc(f.label)}</div></div>`).join('');
+    const { data: sectors } = await supa.from('budget_sectors').select('*').order('sort_order');
+    document.getElementById('budget-bars').innerHTML = (sectors||[]).map(b=>`
+      <div class="bar-row"><div class="bar-top"><span class="name">${esc(b.name)}</span><span class="val mono">${esc(b.value_label)}</span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${Math.min(b.pct*2.6,100)}%"></div></div></div>`).join('');
+  } catch (e) { console.error(e); }
+}
+
+// ----------------------- PARLIAMENT -----------------------
+async function loadBills(){
+  if (!supa) return;
+  try {
+    const { data } = await supa.from('bills').select('*').order('sort_order');
+    document.getElementById('bill-table-body').innerHTML = (data||[]).map(b=>`
+      <tr><td class="primary">${esc(b.name)}</td><td>${esc(b.touches)}</td><td><span class="pill ${esc(b.stage)}">${esc(b.stage_label)}</span></td></tr>`).join('');
+  } catch (e) { console.error(e); }
+}
+
+// ----------------------- MARKETS -----------------------
+async function loadMarkets(){
+  if (!supa) return;
+  try {
+    const { data } = await supa.from('market_snapshots').select('*').order('snapshot_date',{ascending:false}).limit(1);
+    const m = (data||[])[0];
+    if (!m) { document.getElementById('market-stats').innerHTML = '<p class="empty">No snapshot yet.</p>'; return; }
+    const arrow = pct => pct >= 0 ? '▲' : '▼';
+    const color = pct => pct >= 0 ? 'var(--green)' : 'var(--red)';
+    document.getElementById('market-stats').innerHTML = `
+      <div class="stat"><div class="v" style="color:${color(m.sensex_change_pct)}">${m.sensex_close.toLocaleString('en-IN')} ${arrow(m.sensex_change_pct)}</div><div class="l">BSE Sensex · ${m.sensex_change_pct}%</div></div>
+      <div class="stat"><div class="v" style="color:${color(m.nifty_change_pct)}">${m.nifty_close.toLocaleString('en-IN')} ${arrow(m.nifty_change_pct)}</div><div class="l">Nifty 50 · ${m.nifty_change_pct}%</div></div>`;
+    document.getElementById('market-note').innerHTML = `<strong>${fmtDate(m.snapshot_date)} —</strong> ${esc(m.note||'')}`;
+  } catch (e) { console.error(e); }
+}
+
+// ----------------------- RANKINGS -----------------------
+async function loadRankings(){
+  if (!supa) return;
+  try {
+    const { data } = await supa.from('rankings').select('*').order('sort_order');
+    const sym = {up:'▲ improving', down:'▼ declining', flat:'— steady'};
+    document.getElementById('rankings-list').innerHTML = (data||[]).map(r=>`
+      <div class="rank-card"><div class="rank-left"><h4>${esc(r.name)}</h4><p>${esc(r.description)}</p></div>
+      <div class="rank-right"><div class="num">${esc(r.rank_label)}</div><div class="trend mono ${r.trend}">${sym[r.trend]||''}</div></div></div>`).join('');
+  } catch (e) { console.error(e); }
+}
+
+// ----------------------- CONSTITUTION -----------------------
+async function loadConstitution(){
+  if (!supa) return;
+  try {
+    const { data } = await supa.from('constitution_cards').select('*').order('sort_order');
+    document.getElementById('constitution-list').innerHTML = (data||[]).map(c=>`
+      <div class="const-card">
+        <div class="article">${esc(c.article_ref)}</div>
+        <h4>${esc(c.title)}</h4>
+        ${c.quote ? `<blockquote>"${esc(c.quote)}"</blockquote>` : ''}
+        <p>${esc(c.body)}</p>
+        ${c.cite ? `<span class="cite">${esc(c.cite)}</span>` : ''}
+      </div>`).join('');
+  } catch (e) { console.error(e); }
+}
+
+// ----------------------- boot -----------------------
+async function boot(){
+  if (!configured) return;
+  try {
+    const { error } = await supa.from('stories').select('slug', {count:'exact', head:true});
+    if (error) throw error;
+    document.getElementById('live-label').textContent = 'LIVE';
+  } catch (e) {
+    showSetupBanner(`<strong style="color:var(--red)">Connected, but the query failed:</strong> ${esc(e.message||String(e))}. Did you run <code>supabase/schema.sql</code> and <code>supabase/seed.sql</code> in the Supabase SQL editor yet?`);
+  }
+  loadStories(); loadWire(); loadBudget(); loadBills(); loadMarkets(); loadRankings(); loadConstitution();
+}
+boot();
+</script>
+</body>
+</html>
