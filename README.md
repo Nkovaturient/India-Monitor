@@ -1,131 +1,102 @@
-# India Monitor — Phase 2 (live feed)
+# India Monitor
 
-A civic-literacy dashboard that ingests official Indian government sources
-twice a day, extracts grounded "how did this get here" story timelines with
-an LLM, and serves it all from a free static site + free Postgres backend.
-No servers to run, no paid tier required at this scale.
+**Tagline:** Facts over fog — the civic signal India can trust.
+
+**One-liner:** An agentic civic-intelligence system that surfaces only what matters for education, governance, power, and people’s development — with official sources, timelines of how each story got here, and end-to-end insight so Indians speak from data, not rumour or folktale.
+
+**Current phase: 3**
 
 ```
-GitHub Actions (cron, 2x/day)
+GitHub Actions (cron, 2×/day)
         │
-        ├─ ingest.py       → PIB RSS + market data → Supabase (raw_items, market_snapshots)
-        └─ synthesize.py   → Claude, grounded only in fetched text → Supabase (stories, story_stations)
+        ├─ ingest.py      → PIB + 4 newspapers + markets → raw_items, market_snapshots, pipeline_health
+        └─ synthesize.py  → Claude (grounded in fetched text only) → stories, story_stations
 
-Supabase (Postgres + auto REST API + Row Level Security)
-        │  anon key, read-only, safe to embed in the browser
+Supabase (Postgres + REST + RLS)
+        │  anon key, read-only in the browser
         ▼
-GitHub Pages (site/index.html) → queries Supabase directly on page load
+Static site (index.html) → queries Supabase on load
 ```
 
-The key property this gives you: **updates appear on the live site the
-moment the Action finishes** — there's no "rebuild the site" step, because
-the frontend reads Supabase at request time rather than from files baked
-into the repo.
+---
+
+## Phases
+
+### Phase 1 — Foundation
+Schema, seed data, static UI. Manual / curated content for stories, bills, budget, rankings, and constitution cards.
+
+### Phase 2 — Live feed
+Twice-daily automation: PIB RSS + Yahoo Finance markets → Supabase; LLM synthesis into grounded story stations. Site reads live from the DB (no rebuild step).
+
+### Phase 3 — Current
+What shipped on top of Phase 2:
+
+| Change | Detail |
+|---|---|
+| Newspaper feeds | TOI, The Hindu, HT, Indian Express RSS in `scripts/ingest.py`, each isolated (one failure does not stop the others) |
+| Fetch hardening | Browser-like headers + retries via `requests`; parse with `feedparser` on raw bytes so HTTP failures are visible |
+| Relevance allowlist | Education / governance / energy / budget keywords — drops sports, crime blotter, celebrity noise before DB or LLM |
+| `pipeline_health` | Per-source ok/fail, counts, error text (`migration_phase3.sql`) |
+| Bills provenance | `detail_url`, `category`, `prs_slug`, `last_checked_at` + append-only `bill_status_history` |
+| Rankings expansion | Categories + publishers; 9 Phase-2 rows backfilled + 9 new indexes (`seed_phase3_rankings.sql`) |
+| Rankings staging | `rankings_candidates` — proposed updates, not public-read; human promote only |
+
+Apply Phase 3 DB changes in order: `supabase/migration_phase3.sql`, then `supabase/seed_phase3_rankings.sql`.
 
 ---
 
-## 1. One-time setup (about 15 minutes)
+## Status by module
 
-### a) Create the database
-
-### b) Wire up the repo
-
-<!--
-1. Push this folder to a new **public** GitHub repo (public = free unlimited
-   Actions minutes; private repos get a monthly minute cap on the free plan).
-2. Repo → Settings → Secrets and variables → Actions → New repository secret.
-   Add:
-   - `SUPABASE_URL`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-   - `ANTHROPIC_API_KEY` (from [console.anthropic.com](https://console.anthropic.com))
-3. Repo → Settings → Pages → Deploy from branch → `main` → `/site`.
-4. Open `site/index.html`, replace the two placeholder constants at the top
-   of the `<script>` tag with your real `SUPABASE_URL` and
-   `SUPABASE_ANON_KEY` (the **anon** key, never the service_role key), commit.
-5. Repo → Actions tab → run "Refresh India Monitor data" once manually
-   (`workflow_dispatch`) to confirm it's wired correctly before waiting for
-   the cron.
-
---> 
-
-That's it — from here, `.github/workflows/refresh.yml` runs on its own
-twice a day (06:00 and 18:00 IST) and the Pages site reflects it live.
-
----
-
-## 2. What's automated vs. what isn't yet
-
-Being upfront about this, since "real feed" can mean different things:
-
-| Module | Status | Why |
+| Module | Status | Notes |
 |---|---|---|
-| Wire feed (raw items) | **Automated**, 2x/day | PIB's public English RSS feed |
-| Market snapshot | **Automated**, 2x/day | Yahoo Finance, free, no key |
-| Story timelines | **Automated**, 2x/day | LLM extraction, grounded in that run's fetched PIB items only |
-| Auto-tracked new stories | **Automated**, cautious | Only created when an item itself reads like a substantive bill/scheme/policy announcement — see `synthesize.py` docstring |
-| Bill tracker (Parliament tab) | **Seeded, manual refresh** | Digital Sansad has no public API found; would need browser automation (Playwright) against a JS-rendered site — a real Phase 3 project, not a twice-daily cron job |
-| Budget figures | **Seeded, annual refresh** | The Budget is published once a year, as PDFs — parsing `indiabudget.gov.in` documents automatically is a separate, lower-frequency pipeline (see Phase 3) |
-| Rankings | **Seeded, occasional refresh** | Indexes (HDI, GII, etc.) update a few times a year, not daily |
-| Constitution cards | **Curated, static by design** | Deliberately never LLM-authored — see the child prompt's reasoning below |
-| The 4 newspapers (TOI/Hindu/HT/IE) | **Not wired in this phase** | hold off until reliability from a cloud IP is confirmed — see Phase 3 |
+| Wire feed (PIB + newspapers) | **Automated**, 2×/day | Phase 3 |
+| Market snapshot | **Automated**, 2×/day | Yahoo Finance |
+| Story timelines | **Automated**, 2×/day | Grounded LLM; see § safeguards |
+| Auto-tracked new stories | **Automated**, cautious | Only substantive bill/scheme/policy-style items |
+| Pipeline health | **Automated**, 2×/day | Written by ingest; readable from DB/site |
+| Bill tracker | **Seeded + schema ready** | History table exists; status still manual |
+| Budget figures | **Seeded**, annual | PDF pipeline not built |
+| Rankings | **Seeded** (18 indexes) | Candidates table ready; no auto-refresh job yet |
+| Constitution cards | **Curated**, static by design | Never LLM-authored |
+| Newspaper → UI quotes | **Paraphrase / cite carefully** | Prefer links; short quotes only if shown |
 
-## 3. On the "auto-publish, no human review" choice
+---
 
-Currently, direct auto-publish rather than a PR-approval gate, and that's
-what's built. Since nothing here gets a human look before it's live, the
-pipeline leans on **structural** safeguards instead of a review step:
+## Safeguards (auto-publish)
 
-- **Grounding, not generation.** The LLM prompt in `synthesize.py` only ever
-  sees the title/description of the specific item it's classifying — never
-  "what usually happens with bills like this." If it can't point to text
-  that supports a claim, it's instructed to output `skip`, not a guess.
-- **Append-only history.** `story_stations` rows are never edited or deleted
-  by the pipeline — a wrong entry could still get added, but yesterday's
-  entries can't quietly get rewritten.
-- **Every station cites its source row.** `source_item_id` traces back to
-  the exact PIB release, so anything wrong is checkable and correctable —
-  add a row to `story_stations` manually, or delete a bad one, directly in
-  the Supabase table editor at any time; nothing here is one-way.
-- **Auto-tracked stories are labelled, visibly**, so a reader can tell the
-  difference between the two curated flagship stories and something the
-  pipeline opened on its own.
+No human gate before news/story writes. Structural controls instead:
 
-If you ever want to add the PR-review step back in, the change is small:
-have `synthesize.py` write to a `staging_stations` table instead of
-`story_stations`, and add a second workflow that opens a PR (or a Slack
-message, or an email) summarizing pending items for a one-click approve.
+- **Grounding** — `synthesize.py` only sees that item’s title/description; unsure → `skip`
+- **Append-only** — `story_stations` (and `bill_status_history`) are never rewritten by the pipeline
+- **Cite the source row** — stations carry `source_item_id` back to the wire item
+- **Label auto-tracked stories** — distinct from curated flagships
+- **Rankings differ** — numeric rank claims go to `rankings_candidates` first, not straight to `rankings`
 
-## 4. Cost, at this scale
+Optional later: write stations to a staging table and approve via PR / Slack.
 
-- **Supabase free tier**: 500MB DB, 1GB storage, 5GB egress, 2 projects.
-  This project uses a tiny fraction of that. Free-tier projects pause after
-  7 days with *zero database activity* — irrelevant here, since the Action
-  writes every 12 hours and resets that clock automatically.
-- **GitHub Actions**: free and unlimited on public repos for scheduled
-  workflows; this job runs a couple of minutes, twice a day.
-- **Anthropic API**: the only real line item. Each run batches up to 12
-  items per Claude call (Sonnet), so a typical day costs a few cents, not
-  dollars — and if `ingest.py`'s keyword filter finds nothing relevant in a
-  given run, `synthesize.py` has nothing to process and doesn't call the
-  API at all.
+---
 
-## 5. Phase 3 ideas, not built yet
+## Cost (this scale)
 
-- **Newspapers**: once you've confirmed `timesofindia.indiatimes.com`,
-  `thehindu.com`, `hindustantimes.com`, and `indianexpress.com`'s RSS feeds
-  actually respond to a GitHub Actions IP (test with a one-off
-  `workflow_dispatch` run first — cheap to find out), add them to
-  `PIB_FEEDS`-style entries in `ingest.py`. Keep the "paraphrase, don't
-  reproduce, one short quote max per source" rule from the prototype if any
-  headline/snippet text ever reaches the UI directly.
-- **Bill tracker automation**: Digital Sansad appears to be a JS-rendered
-  SPA with no public API — would need Playwright running headless in the
-  Action (slower, heavier, more fragile than RSS) or a manual weekly
-  10-minute update. Worth prototyping separately before wiring into the
-  2x/day job.
-- **Budget PDF parsing**: `indiabudget.gov.in` publishes structured PDFs
-  once a year — `pdfplumber` can likely extract the ministry-wise tables
-  directly, removing the need to hand-seed `budget_sectors` next February.
-- **A `/api/health` style check**: have `ingest.py` write a one-row
-  `pipeline_health` table (last run time, sources that failed) so the site
-  can show "last updated" honestly instead of assuming the cron worked.
+- **Supabase free tier** — well within limits; cron writes keep the project active
+- **GitHub Actions** — free on public repos for this short 2×/day job
+- **Anthropic** — main cost; skipped entirely when ingest finds nothing relevant
+
+---
+
+## Setup (one-time)
+
+1. Create / use the Supabase project; run base schema + seeds, then Phase 3 migration + rankings seed.
+2. Push to a **public** GitHub repo. Add Actions secrets: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`.
+3. Point Pages (or your host) at the static site; put **anon** URL + key in the frontend (never service_role).
+4. Run **Refresh India Monitor data** once via `workflow_dispatch`. Cron: 06:00 and 18:00 IST.
+
+---
+
+## Forward ahead — not built yet
+
+- **Bill tracker automation** — Digital Sansad / PRS scrape or Playwright; wire status changes into `bill_status_history` (schema is ready)
+- **Rankings refresh job** — periodic fetch into `rankings_candidates`; human promote to `rankings`
+- **Budget PDF parsing** — yearly `indiabudget.gov.in` tables via something like `pdfplumber` → `budget_sectors`
+- **Health on the UI** — surface `pipeline_health` as an honest “last updated / source failed” strip
+- **Review gate (optional)** — staging table + approve path if auto-publish for stories becomes too loose
