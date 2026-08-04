@@ -55,7 +55,8 @@
   .section-label{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--ink-faint); margin:0 0 8px; }
   h2.page-title{ font-family:'Newsreader',serif; font-size:30px; font-weight:600; margin:0 0 6px; }
 
-  .story{ border:1px solid var(--border); border-radius:var(--radius); background:var(--panel); margin-bottom:16px; overflow:hidden; }
+  .story{ border:1px solid rgba(255,255,255,0.08); border-radius:var(--radius); background:rgba(18,21,27,0.55); backdrop-filter:blur(12px); margin-bottom:16px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.2); transition:border-color .2s, box-shadow .2s; }
+  .story:hover{ border-color:rgba(224,141,60,0.2); box-shadow:0 6px 28px rgba(0,0,0,0.28); }
   .story-head{ padding:20px 22px; cursor:pointer; display:flex; justify-content:space-between; gap:18px; }
   .story-head:hover{ background:var(--panel-2); }
   .story-tags{ display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
@@ -134,8 +135,46 @@
   .wire-item a:hover{ color:var(--saffron); }
   .wire-item .stale{ color:var(--ink-faint); text-decoration:line-through; }
   .filter-row{ display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
-  .filter-btn{ font-family:'JetBrains Mono',monospace; font-size:11px; background:none; border:1px solid var(--border); color:var(--ink-dim); padding:6px 12px; border-radius:20px; cursor:pointer; }
-  .filter-btn.active{ color:var(--saffron); border-color:var(--saffron-dim); }
+  .filter-btn{ font-family:'JetBrains Mono',monospace; font-size:11px; background:rgba(18,21,27,0.45); border:1px solid rgba(255,255,255,0.08); color:var(--ink-dim); padding:6px 12px; border-radius:20px; cursor:pointer; transition:all .2s ease; backdrop-filter:blur(8px); }
+  .filter-btn:hover{ color:var(--ink); border-color:rgba(255,255,255,0.15); }
+  .filter-btn.active{ color:var(--saffron); border-color:var(--saffron-dim); background:rgba(224,141,60,0.1); box-shadow:0 0 16px rgba(224,141,60,0.15); animation:tabPulse 2.5s ease-in-out infinite; }
+  @keyframes tabPulse{ 0%,100%{ box-shadow:0 0 8px rgba(224,141,60,0.1); } 50%{ box-shadow:0 0 18px rgba(224,141,60,0.22); } }
+
+  .glass{ background:rgba(18,21,27,0.55); backdrop-filter:blur(14px); -webkit-backdrop-filter:blur(14px); border:1px solid rgba(255,255,255,0.08); box-shadow:0 4px 24px rgba(0,0,0,0.28); }
+  .glass-filters{ padding:10px 12px; border-radius:var(--radius); margin-bottom:12px; }
+
+  .wire-grid{ display:grid; gap:10px; }
+  .wire-card{ border-radius:var(--radius); padding:14px 16px; transition:transform .2s ease, border-color .2s ease, box-shadow .2s ease; animation:cardIn .4s ease backwards; }
+  .wire-card:hover{ transform:translateY(-2px); border-color:rgba(224,141,60,0.25); box-shadow:0 8px 28px rgba(0,0,0,0.35); }
+  .wire-card .wire-meta{ display:flex; align-items:center; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+  .wire-card .wire-date{ font-family:'JetBrains Mono',monospace; font-size:10.5px; color:var(--ink-faint); }
+  .wire-card .wire-src{ font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-dim); letter-spacing:0.3px; }
+  .wire-card a{ color:var(--ink); text-decoration:none; font-size:14px; line-height:1.5; display:block; }
+  .wire-card a:hover{ color:var(--saffron); }
+  .wire-card a.stale{ color:var(--ink-faint); text-decoration:line-through; }
+
+  .topic-badge{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.8px; text-transform:uppercase; padding:2px 8px; border-radius:20px; border:1px solid; }
+  .topic-badge.gov{ color:var(--navy); border-color:rgba(93,130,190,0.5); background:rgba(93,130,190,0.08); }
+  .topic-badge.edu{ color:var(--green); border-color:rgba(46,158,110,0.5); background:rgba(46,158,110,0.08); }
+  .topic-badge.health{ color:#5ec4c4; border-color:rgba(94,196,196,0.45); background:rgba(94,196,196,0.08); }
+  .topic-badge.econ{ color:var(--saffron); border-color:rgba(224,141,60,0.45); background:rgba(224,141,60,0.08); }
+  .topic-badge.energy{ color:#d4a574; border-color:rgba(212,165,116,0.45); background:rgba(212,165,116,0.08); }
+  .topic-badge.general{ color:var(--ink-dim); border-color:var(--border); background:rgba(255,255,255,0.02); }
+  .topic-badge.signal{ color:var(--green); border-color:var(--green-dim); background:rgba(46,158,110,0.1); animation:pulse 2s infinite; }
+
+  .rank-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+  @media (max-width:700px){ .rank-grid{ grid-template-columns:1fr; } }
+  .rank-card-glass{ border-radius:var(--radius); padding:16px 18px; display:flex; flex-direction:column; gap:8px; transition:transform .2s ease, border-color .2s ease; animation:cardIn .45s ease backwards; }
+  .rank-card-glass:hover{ transform:translateY(-3px); border-color:rgba(255,255,255,0.14); }
+  .rank-card-glass .rank-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+  .rank-card-glass h4{ margin:0; font-size:14.5px; font-weight:600; color:var(--ink); line-height:1.35; }
+  .rank-card-glass .num{ font-family:'Newsreader',serif; font-size:22px; font-weight:600; flex-shrink:0; }
+  .rank-card-glass p{ margin:0; font-size:12.5px; color:var(--ink-dim); line-height:1.5; }
+  .rank-card-glass .rank-foot{ display:flex; justify-content:space-between; align-items:center; margin-top:4px; }
+  .rank-cat{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.8px; text-transform:uppercase; color:var(--ink-faint); }
+  @keyframes cardIn{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+
+  .count-chip{ font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-faint); margin-left:4px; }
 
   .skel{ background:linear-gradient(90deg,var(--panel) 25%,var(--panel-2) 50%,var(--panel) 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:var(--radius); height:64px; margin-bottom:12px; }
   @keyframes shimmer{ 0%{background-position:200% 0;} 100%{background-position:-200% 0;} }
@@ -180,12 +219,21 @@
     <div id="stories-list"><div class="skel"></div><div class="skel"></div></div>
 
     <p class="section-label" style="margin-top:36px;">Wire feed — raw, unedited</p>
+    <div class="filter-row glass-filters glass" id="wire-topic-filters">
+      <button class="filter-btn active" data-topic="high">High signal</button>
+      <button class="filter-btn" data-topic="governance">Governance</button>
+      <button class="filter-btn" data-topic="education">Education</button>
+      <button class="filter-btn" data-topic="health">Health</button>
+      <button class="filter-btn" data-topic="economy">Economy</button>
+      <button class="filter-btn" data-topic="energy">Energy</button>
+      <button class="filter-btn" data-topic="all">All</button>
+    </div>
     <div class="filter-row" id="wire-filters">
       <button class="filter-btn active" data-range="1">Today</button>
       <button class="filter-btn" data-range="7">This week</button>
       <button class="filter-btn" data-range="9999">All time</button>
     </div>
-    <div id="wire-list"><div class="skel"></div></div>
+    <div id="wire-list" class="wire-grid"></div>
   </section>
 
   <section id="budget" class="panel">
@@ -223,7 +271,17 @@
   <section id="rankings" class="panel">
     <p class="section-label">Where India stands</p>
     <h2 class="page-title">Global index rankings</h2>
-    <div id="rankings-list"></div>
+    <div class="filter-row glass-filters glass" id="rank-filters">
+      <button class="filter-btn active" data-cat="all">All</button>
+      <button class="filter-btn" data-cat="human-development">Development</button>
+      <button class="filter-btn" data-cat="environment">Climate</button>
+      <button class="filter-btn" data-cat="economy">Economy</button>
+      <button class="filter-btn" data-cat="innovation">Innovation</button>
+      <button class="filter-btn" data-cat="governance">Governance</button>
+      <button class="filter-btn" data-cat="security">Security</button>
+      <button class="filter-btn" data-cat="global-standing">Global</button>
+    </div>
+    <div id="rankings-list" class="rank-grid"></div>
   </section>
 
   <section id="constitution" class="panel">
@@ -285,6 +343,40 @@ function toggleStory(el){ el.classList.toggle('open'); }
 function esc(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function fmtDate(d){ if(!d) return ''; return new Date(d).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'}); }
 
+// Topic classification — mirrors ingest.py rules; used when DB topic is null (older rows).
+const TOPIC_RULES = [
+  ['education', ['education','university','ugc','aicte','ncte','school','student','vidya','shiksha','skilling','skill development','curriculum','neet','mbbs']],
+  ['health', ['health','hospital','medical','healthcare','doctor','pharma','disease','vaccine','ayushman','nha','who','patient','clinical']],
+  ['energy', ['power','electricity','discom','tariff','grid','renewable','solar','energy','coal','transmission','ntpc','petroleum']],
+  ['governance', ['parliament','lok sabha','rajya sabha','bill','ordinance','cabinet','amendment','constitution','supreme court','high court','judiciary','election commission','rti','governance','cbi','court']],
+  ['economy', ['budget','fiscal','gdp','infrastructure','rural development','poverty','employment','welfare','scheme','yojana','subsidy','finance ministry','taxation','income tax','wto','trade','market','investment','export']],
+];
+const TOPIC_LABELS = { governance:'Governance', education:'Education', health:'Health', economy:'Economy', energy:'Energy', general:'General' };
+const TOPIC_BADGE = { governance:'gov', education:'edu', health:'health', economy:'econ', energy:'energy', general:'general' };
+
+function classifyTopic(title, description){
+  const text = `${title||''} ${description||''}`.toLowerCase();
+  const scores = {};
+  TOPIC_RULES.forEach(([topic, kws]) => {
+    kws.forEach(kw => { if (text.includes(kw)) scores[topic] = (scores[topic]||0) + 1; });
+  });
+  if (!Object.keys(scores).length) return 'general';
+  return Object.entries(scores).sort((a,b)=>b[1]-a[1])[0][0];
+}
+function itemTopic(it){ return it.topic || classifyTopic(it.title, it.description); }
+function isHighSignal(it){
+  return (it.source && it.source.includes('PIB')) || it.matched_story_slug || it.llm_relevant === true;
+}
+function shortSource(src){
+  if (!src) return '';
+  if (src.includes('PIB')) return 'PIB';
+  if (src.includes('Times of India')) return 'TOI';
+  if (src.includes('Hindu')) return 'The Hindu';
+  if (src.includes('Hindustan')) return 'HT';
+  if (src.includes('Express')) return 'IE';
+  return src.split('·')[0].trim();
+}
+
 // ----------------------- NEWS: stories + stations -----------------------
 async function loadStories(){
   const list = document.getElementById('stories-list');
@@ -336,26 +428,67 @@ async function loadStories(){
 
 // ----------------------- NEWS: wire feed -----------------------
 let currentWireRange = 1;
+let currentWireTopic = 'high';
+let wireCache = [];
+
+function renderWire(items){
+  const list = document.getElementById('wire-list');
+  if (!items.length) {
+    const hint = currentWireTopic === 'high'
+      ? 'No high-signal items in this window — try a topic tab or widen the time range.'
+      : 'Nothing in this topic yet. Try "All" or "All time".';
+    list.innerHTML = `<p class="empty">${hint}</p>`;
+    return;
+  }
+  list.innerHTML = items.map((it, i) => {
+    const topic = itemTopic(it);
+    const badge = TOPIC_BADGE[topic] || 'general';
+    const signal = isHighSignal(it) ? '<span class="topic-badge signal">verified</span>' : '';
+    return `
+    <article class="wire-card glass" style="animation-delay:${Math.min(i*0.04,0.4)}s">
+      <div class="wire-meta">
+        <span class="wire-date">${fmtDate(it.published_at || it.fetched_at)}</span>
+        <span class="topic-badge ${badge}">${TOPIC_LABELS[topic]||topic}</span>
+        ${signal}
+        <span class="wire-src">${esc(shortSource(it.source))}</span>
+      </div>
+      <a href="${esc(it.link)}" target="_blank" rel="noopener" class="${it.is_current === false ? 'stale' : ''}">${esc(it.title)}</a>
+    </article>`;
+  }).join('');
+}
+
+function applyWireFilters(){
+  let items = wireCache;
+  if (currentWireTopic === 'high') items = items.filter(isHighSignal);
+  else if (currentWireTopic !== 'all') items = items.filter(it => itemTopic(it) === currentWireTopic);
+  renderWire(items);
+}
+
 async function loadWire(){
   const list = document.getElementById('wire-list');
   if (!supa) { list.innerHTML = '<p class="empty">Connect Supabase to load the wire feed.</p>'; return; }
   list.innerHTML = '<div class="skel"></div><div class="skel"></div>';
   try {
     const cutoff = new Date(Date.now() - currentWireRange*24*60*60*1000).toISOString();
-    let q = supa.from('raw_items').select('*').order('fetched_at', {ascending:false}).limit(60);
+    let q = supa.from('raw_items').select('*').order('fetched_at', {ascending:false}).limit(120);
     if (currentWireRange < 9999) q = q.gte('fetched_at', cutoff);
     const { data, error } = await q;
     if (error) throw error;
-    if (!data || !data.length) { list.innerHTML = '<p class="empty">Nothing in this window yet. The Action runs twice a day — try "All time".</p>'; return; }
-    list.innerHTML = data.map(it => `
-      <div class="wire-item">
-        <span class="t">${fmtDate(it.published_at || it.fetched_at)}</span>
-        <a href="${esc(it.link)}" target="_blank" rel="noopener" class="${it.is_current === false ? 'stale' : ''}">${esc(it.title)}</a>
-      </div>`).join('');
+    wireCache = data || [];
+    applyWireFilters();
   } catch (e) {
     list.innerHTML = `<p class="empty">Couldn't load the wire feed (${esc(e.message||String(e))}).</p>`;
   }
 }
+
+document.querySelectorAll('#wire-topic-filters .filter-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#wire-topic-filters .filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentWireTopic = btn.dataset.topic;
+    applyWireFilters();
+  });
+});
 document.querySelectorAll('#wire-filters .filter-btn').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('#wire-filters .filter-btn').forEach(b=>b.classList.remove('active'));
@@ -406,16 +539,58 @@ async function loadMarkets(){
 }
 
 // ----------------------- RANKINGS -----------------------
+let rankingsCache = [];
+let currentRankCat = 'all';
+const RANK_CAT_LABELS = {
+  'human-development':'Development', environment:'Climate', economy:'Economy',
+  innovation:'Innovation', governance:'Governance', security:'Security', 'global-standing':'Global',
+};
+
+function renderRankings(items){
+  const list = document.getElementById('rankings-list');
+  if (!items.length) {
+    list.innerHTML = '<p class="empty">No rankings in this category.</p>';
+    return;
+  }
+  const sym = {up:'▲ improving', down:'▼ declining', flat:'— steady'};
+  list.innerHTML = items.map((r, i) => `
+    <article class="rank-card-glass glass" style="animation-delay:${Math.min(i*0.05,0.45)}s">
+      <div class="rank-top">
+        <h4>${esc(r.name)}</h4>
+        <div class="num">${esc(r.rank_label)}</div>
+      </div>
+      <p>${esc(r.description)}</p>
+      <div class="rank-foot">
+        <span class="rank-cat">${esc(RANK_CAT_LABELS[r.category] || r.category || '')}</span>
+        <span class="trend mono ${r.trend}">${sym[r.trend]||''}</span>
+      </div>
+    </article>`).join('');
+}
+
+function applyRankFilters(){
+  const items = currentRankCat === 'all'
+    ? rankingsCache
+    : rankingsCache.filter(r => r.category === currentRankCat);
+  renderRankings(items);
+}
+
 async function loadRankings(){
   if (!supa) return;
   try {
     const { data } = await supa.from('rankings').select('*').order('sort_order');
-    const sym = {up:'▲ improving', down:'▼ declining', flat:'— steady'};
-    document.getElementById('rankings-list').innerHTML = (data||[]).map(r=>`
-      <div class="rank-card"><div class="rank-left"><h4>${esc(r.name)}</h4><p>${esc(r.description)}</p></div>
-      <div class="rank-right"><div class="num">${esc(r.rank_label)}</div><div class="trend mono ${r.trend}">${sym[r.trend]||''}</div></div></div>`).join('');
+    rankingsCache = data || [];
+    applyRankFilters();
   } catch (e) { console.error(e); }
 }
+
+document.querySelectorAll('#rank-filters .filter-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('#rank-filters .filter-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    currentRankCat = btn.dataset.cat;
+    applyRankFilters();
+  });
+});
 
 // ----------------------- CONSTITUTION -----------------------
 async function loadConstitution(){

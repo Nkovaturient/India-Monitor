@@ -77,6 +77,32 @@ KEYWORDS = [
 ]
 KEYWORD_RE = re.compile("|".join(re.escape(k) for k in KEYWORDS), re.IGNORECASE)
 
+# Topic tags for wire-feed tabs — scored by keyword hits; highest score wins.
+TOPIC_RULES = [
+    ("education", [
+        "education", "university", "ugc", "aicte", "ncte", "school", "student",
+        "vidya", "shiksha", "skilling", "skill development", "curriculum", "neet", "mbbs",
+    ]),
+    ("health", [
+        "health", "hospital", "medical", "healthcare", "doctor", "pharma", "disease",
+        "vaccine", "ayushman", "nha", "who", "patient", "clinical",
+    ]),
+    ("energy", [
+        "power", "electricity", "discom", "tariff", "grid", "renewable", "solar",
+        "energy", "coal", "transmission", "ntpc", "petroleum",
+    ]),
+    ("governance", [
+        "parliament", "lok sabha", "rajya sabha", "bill", "ordinance", "cabinet",
+        "amendment", "constitution", "supreme court", "high court", "judiciary",
+        "election commission", "rti", "governance", "cbi", "court",
+    ]),
+    ("economy", [
+        "budget", "fiscal", "gdp", "infrastructure", "rural development", "poverty",
+        "employment", "welfare", "scheme", "yojana", "subsidy", "finance ministry",
+        "taxation", "income tax", "wto", "trade", "market", "investment", "export",
+    ]),
+]
+
 
 def log(msg):
     print(f"[{dt.datetime.utcnow().isoformat()}Z] {msg}", flush=True)
@@ -85,6 +111,18 @@ def log(msg):
 def is_relevant(title, description):
     text = f"{title} {description or ''}"
     return bool(KEYWORD_RE.search(text))
+
+
+def classify_topic(title, description):
+    text = f"{title} {description or ''}".lower()
+    scores = {}
+    for topic, keywords in TOPIC_RULES:
+        for kw in keywords:
+            if kw in text:
+                scores[topic] = scores.get(topic, 0) + 1
+    if not scores:
+        return "general"
+    return max(scores, key=scores.get)
 
 
 def supabase_post(table, rows, on_conflict=None, prefer_extra=""):
@@ -166,6 +204,7 @@ def ingest_feeds():
             rows.append({
                 "source": name, "guid": guid, "title": title, "link": link,
                 "description": (description or "")[:2000], "published_at": published_at,
+                "topic": classify_topic(title, description),
             })
 
         log(f"  {len(parsed.entries)} entries seen, {len(rows)} passed the relevance filter.")
