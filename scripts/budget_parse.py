@@ -14,37 +14,15 @@ Statement 1 / Statement 3 pages in vol1.pdf — text is extracted with pypdf.
 
 import argparse
 import io
-import json as _json
 import os
 import re
 import sys
-import time as _time
 import traceback
 
 import requests
 from pypdf import PdfReader
 
 from common import FETCH_HEADERS, log, record_health, supabase_post
-
-# #region agent log
-_DBG_PATH = "/Users/matrix/Agentic ✅/.cursor/debug-f72722.log"
-
-
-def _dbg(hypothesis_id, location, message, data=None, run_id="run1"):
-    try:
-        with open(_DBG_PATH, "a", encoding="utf-8") as f:
-            f.write(_json.dumps({
-                "sessionId": "f72722",
-                "runId": run_id,
-                "hypothesisId": hypothesis_id,
-                "location": location,
-                "message": message,
-                "data": data or {},
-                "timestamp": int(_time.time() * 1000),
-            }) + "\n")
-    except Exception:
-        pass
-# #endregion
 
 SECTOR_DEMANDS = {
     "interest": ["Interest Payments"],
@@ -81,17 +59,6 @@ def download_pdf(url):
     resp = requests.get(url, headers=headers, timeout=60, allow_redirects=True)
     content = resp.content or b""
     content_type = resp.headers.get("content-type", "")
-    # #region agent log
-    _dbg("A", "budget_parse.py:download_pdf", "download response", {
-        "status": resp.status_code,
-        "final_url": (resp.url or "")[:180],
-        "content_type": content_type,
-        "nbytes": len(content),
-        "magic": content[:8].decode("latin-1", errors="replace"),
-        "is_pdf": content.startswith(b"%PDF-"),
-        "redirects": len(resp.history),
-    }, run_id="post-fix")
-    # #endregion
     if resp.status_code != 200 or not content:
         raise RuntimeError(f"HTTP {resp.status_code}, {len(content)} bytes, type={content_type}")
     if not content.startswith(b"%PDF-"):
@@ -117,12 +84,6 @@ def last_amount(text):
 
 def extract_text_pypdf(pdf_bytes, max_pages=90):
     reader = PdfReader(io.BytesIO(pdf_bytes))
-    # #region agent log
-    _dbg("C", "budget_parse.py:extract_text_pypdf", "pypdf opened", {
-        "pages": len(reader.pages),
-        "encrypted": bool(getattr(reader, "is_encrypted", False)),
-    }, run_id="post-fix")
-    # #endregion
     chunks = []
     limit = min(len(reader.pages), max_pages)
     for i in range(limit):
@@ -130,11 +91,6 @@ def extract_text_pypdf(pdf_bytes, max_pages=90):
             t = reader.pages[i].extract_text() or ""
         except Exception as e:
             log(f"  ! pypdf page {i + 1} failed: {e!r}")
-            # #region agent log
-            _dbg("C", "budget_parse.py:extract_text_pypdf", "page failed", {
-                "page": i + 1, "error_type": type(e).__name__, "error": str(e)[:200],
-            }, run_id="post-fix")
-            # #endregion
             continue
         chunks.append(t)
     return "\n".join(chunks)
@@ -223,13 +179,6 @@ def build_updates_from_text(text):
             "pct": pct,
             "value_label": f"remainder · ~{pct}%",
         }
-    # #region agent log
-    _dbg("C", "budget_parse.py:build_updates_from_text", "parsed", {
-        "facts": {k: v.get("value") for k, v in facts.items()},
-        "sectors": {k: v.get("value_label") for k, v in sectors.items()},
-        "demand_count": len(demands),
-    }, run_id="post-fix")
-    # #endregion
     return facts, sectors, len(demands)
 
 
@@ -252,12 +201,6 @@ def main():
         pdf_bytes, content_type, final_url = download_pdf(url)
         log(f"  downloaded {len(pdf_bytes)} bytes ({content_type}) from {final_url}")
     except Exception as e:
-        # #region agent log
-        _dbg("A", "budget_parse.py:main", "fetch failed", {
-            "error_type": type(e).__name__,
-            "error": str(e)[:400],
-        }, run_id="post-fix")
-        # #endregion
         log(f"  ! fetch failed: {e}")
         if not args.dry_run:
             record_health("Budget · PDF parse", ok=False, error=str(e)[:500])
@@ -268,13 +211,6 @@ def main():
         facts, sectors, demand_n = build_updates_from_text(text)
     except Exception as e:
         tb = traceback.format_exc()
-        # #region agent log
-        _dbg("C", "budget_parse.py:main", "parse failed", {
-            "error_type": type(e).__name__,
-            "error": str(e)[:400],
-            "traceback_tail": tb[-800:],
-        }, run_id="post-fix")
-        # #endregion
         log(f"  ! parse failed: {e!r}\n{tb}")
         if not args.dry_run:
             record_health("Budget · PDF parse", ok=False, error=f"{type(e).__name__}: {e}"[:500])
