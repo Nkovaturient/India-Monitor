@@ -21,34 +21,12 @@ gets written to `pipeline_health` so you can see what happened without
 reading Action logs.
 """
 
-import os
 import re
-import json
-import time
 import datetime as dt
 
-import requests
 import feedparser
 
-SUPABASE_URL = os.environ["SUPABASE_URL"].rstrip("/")
-SUPABASE_SERVICE_ROLE_KEY = os.environ["SUPABASE_SERVICE_ROLE_KEY"]
-
-HEADERS = {
-    "apikey": SUPABASE_SERVICE_ROLE_KEY,
-    "Authorization": f"Bearer {SUPABASE_SERVICE_ROLE_KEY}",
-    "Content-Type": "application/json",
-}
-
-# A real browser UA. Several .gov.in and newspaper sites block the default
-# `python-requests/x.x` / `feedparser/x.x` UAs outright.
-FETCH_HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-        "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
-    ),
-    "Accept": "application/rss+xml, application/xml, text/xml, */*;q=0.8",
-    "Accept-Language": "en-IN,en;q=0.9",
-}
+from common import fetch_url, log, record_health, supabase_post
 
 FEEDS = [
     {"name": "PIB · English releases", "url": "https://www.pib.gov.in/ViewRss.aspx?reg=1&lang=1"},
@@ -104,10 +82,6 @@ TOPIC_RULES = [
 ]
 
 
-def log(msg):
-    print(f"[{dt.datetime.utcnow().isoformat()}Z] {msg}", flush=True)
-
-
 def is_relevant(title, description):
     text = f"{title} {description or ''}"
     return bool(KEYWORD_RE.search(text))
@@ -125,57 +99,15 @@ def classify_topic(title, description):
     return max(scores, key=scores.get)
 
 
-def supabase_post(table, rows, on_conflict=None, prefer_extra=""):
-    if not rows:
-        return 0
-    url = f"{SUPABASE_URL}/rest/v1/{table}"
-    prefer = "return=representation"
-    if on_conflict:
-        url += f"?on_conflict={on_conflict}"
-        prefer = f"resolution=ignore-duplicates,{prefer}"
-    if prefer_extra:
-        prefer = f"{prefer_extra},{prefer}"
-    headers = {**HEADERS, "Prefer": prefer}
-    resp = requests.post(url, headers=headers, data=json.dumps(rows), timeout=30)
-    if resp.status_code not in (200, 201):
-        log(f"  ! write to {table} failed: {resp.status_code} {resp.text[:300]}")
-        return 0
-    try:
-        return len(resp.json())
-    except Exception:
-        return 0
-
-
-def record_health(source, ok, items_seen=0, items_kept=0, error=None):
-    supabase_post("pipeline_health", [{
-        "source": source, "ok": ok, "items_seen": items_seen,
-        "items_kept": items_kept, "error": (error or "")[:500],
-    }])
-
-
-def fetch_feed_content(url, attempts=2):
-    """Fetch raw bytes with real headers + retries. Returns bytes or raises."""
-    last_err = None
-    for attempt in range(1, attempts + 1):
-        try:
-            resp = requests.get(url, headers=FETCH_HEADERS, timeout=20)
-            if resp.status_code == 200 and resp.content:
-                return resp.content
-            last_err = f"HTTP {resp.status_code}, {len(resp.content)} bytes"
-        except Exception as e:
-            last_err = str(e)
-        if attempt < attempts:
-            time.sleep(2 * attempt)
-    raise RuntimeError(last_err or "unknown fetch failure")
-
-
 def ingest_feeds():
     total_new = 0
     for feed in FEEDS:
         name, url = feed["name"], feed["url"]
         log(f"Fetching {name} ...")
         try:
-            content = fetch_feed_content(url)
+            content = fetch_url(
+                url, accept="application/rss+xml, application/xml, text/xml, */*;q=0.8"
+            )
         except Exception as e:
             log(f"  ! could not fetch {name}: {e}. Skipping this source.")
             record_health(name, ok=False, error=str(e))

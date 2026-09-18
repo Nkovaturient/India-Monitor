@@ -1,0 +1,30 @@
+name: Refresh India Monitor budget figures
+
+on:
+  schedule:
+    # 2 February ~09:30 IST — reminder only; no-ops unless BUDGET_PDF_URL is set.
+    - cron: '0 4 2 2 *'
+  workflow_dispatch: {}
+
+jobs:
+  budget:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: scripts/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r scripts/requirements.txt
+
+      - name: Parse Union Budget PDF
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BUDGET_PDF_URL: ${{ secrets.BUDGET_PDF_URL }}
+        run: python scripts/budget_parse.py

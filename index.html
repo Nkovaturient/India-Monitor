@@ -14,6 +14,7 @@
     --saffron:#E08D3C; --saffron-dim:#8A6236;
     --green:#2E9E6E; --green-dim:#1D5E43;
     --navy:#5D82BE; --red:#C0614F; --radius:3px;
+    --chrome-h:118px;
   }
   *{box-sizing:border-box;}
   body{
@@ -27,26 +28,155 @@
   :focus-visible{ outline:2px solid var(--saffron); outline-offset:2px; }
   .mono{ font-family:'JetBrains Mono',monospace; }
 
-  .topbar{ display:flex; align-items:center; justify-content:space-between; padding:18px 28px;
-    border-bottom:1px solid var(--border); position:sticky; top:0; z-index:50;
-    background:rgba(10,12,16,0.92); backdrop-filter:blur(8px); flex-wrap:wrap; gap:10px; }
+  .site-chrome{
+    position:sticky; top:0; z-index:50;
+    background:rgba(10,12,16,0.72); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
+    border-bottom:1px solid rgba(255,255,255,0.07);
+    box-shadow:0 10px 36px rgba(0,0,0,0.28), 0 1px 0 rgba(255,255,255,0.04) inset;
+  }
+  .topbar{ display:flex; align-items:center; justify-content:space-between; padding:16px 28px 12px;
+    background:transparent; flex-wrap:wrap; gap:10px; }
   .brand{ display:flex; align-items:center; gap:14px; }
   .tricolor{ width:5px; height:38px; border-radius:2px; overflow:hidden; display:flex; flex-direction:column; flex-shrink:0; }
   .tricolor span{ flex:1; } .tricolor .s1{background:var(--saffron);} .tricolor .s2{background:#e9e6dc;} .tricolor .s3{background:var(--green);}
   .brand-text h1{ font-family:'Newsreader',serif; font-weight:600; font-size:21px; margin:0; letter-spacing:0.3px; line-height:1.1; }
   .brand-text p{ margin:2px 0 0; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--ink-dim); font-family:'JetBrains Mono',monospace; }
   .meta{ display:flex; align-items:center; gap:14px; font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--ink-dim); }
-  .live-badge{ border:1px solid var(--border); padding:5px 10px; border-radius:20px; letter-spacing:0.5px; display:flex; align-items:center; gap:6px; }
+  .live-badge{ border:1px solid rgba(255,255,255,0.1); padding:5px 10px; border-radius:20px; letter-spacing:0.5px; display:flex; align-items:center; gap:6px; background:rgba(18,21,27,0.45); }
   .live-badge .dot{ width:6px; height:6px; border-radius:50%; background:var(--green); display:inline-block; animation:pulse 2s infinite; }
   @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.3;} }
   .clock{ min-width:70px; text-align:right; }
 
-  .tabs{ display:flex; gap:2px; padding:0 28px; border-bottom:1px solid var(--border); overflow-x:auto; background:rgba(255,255,255,0.01); }
-  .tab{ background:none; border:none; color:var(--ink-dim); font-family:'JetBrains Mono',monospace; font-size:12.5px; letter-spacing:1px;
-    text-transform:uppercase; padding:14px 16px; cursor:pointer; border-bottom:2px solid transparent; white-space:nowrap; transition:color .15s,border-color .15s; }
-  .tab:hover{ color:var(--ink); } .tab.active{ color:var(--saffron); border-bottom-color:var(--saffron); }
+  .health-strip{
+    display:none; align-items:center; gap:10px; flex-wrap:wrap;
+    padding:6px 28px 8px; font-family:'JetBrains Mono',monospace; font-size:10.5px;
+    color:var(--ink-faint); letter-spacing:0.2px;
+  }
+  .health-strip.visible{ display:flex; }
+  .health-chip{
+    display:inline-flex; align-items:center; gap:6px;
+    padding:3px 9px; border-radius:20px;
+    border:1px solid rgba(255,255,255,0.08); background:rgba(18,21,27,0.4);
+    color:var(--ink-dim); white-space:nowrap;
+  }
+  .health-chip .dot{ width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+  .health-chip.ok .dot{ background:var(--green); }
+  .health-chip.fail .dot{ background:var(--red); }
+  .health-chip.fail{ color:var(--red); border-color:rgba(192,97,79,0.35); }
+  .health-when{ margin-left:auto; color:var(--ink-faint); }
 
-  main{ max-width:1080px; margin:0 auto; padding:36px 28px 80px; }
+  .tabs{
+    display:flex; gap:4px; padding:4px 24px 0; overflow-x:auto;
+    background:transparent;
+  }
+  .tab{
+    background:rgba(18,21,27,0.28); border:1px solid transparent; border-bottom:none;
+    color:var(--ink-dim); font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:1px;
+    text-transform:uppercase; padding:11px 16px 12px; cursor:pointer; border-radius:10px 10px 0 0;
+    white-space:nowrap; transition:color .2s, background .2s, border-color .2s, box-shadow .2s;
+  }
+  .tab:hover{ color:var(--ink); background:rgba(255,255,255,0.04); }
+  .tab.active{
+    color:var(--saffron); background:rgba(224,141,60,0.1);
+    border-color:rgba(224,141,60,0.22); box-shadow:0 -4px 18px rgba(224,141,60,0.08);
+  }
+
+  .app-shell{
+    display:grid; width:100%;
+    grid-template-columns:1fr minmax(0,min(1120px,96vw)) 1fr;
+    align-items:start; perspective:1400px;
+  }
+  .app-shell.solo{ grid-template-columns:1fr minmax(0,780px) 1fr; }
+  main{
+    grid-column:2; min-width:0; max-width:none; margin:0;
+    padding:36px 0 80px; transform:translateZ(0);
+    transition:transform .35s cubic-bezier(.4,0,.2,1);
+  }
+  .news-columns{
+    display:grid; grid-template-columns:minmax(0,1fr) minmax(300px,380px);
+    gap:clamp(20px,3vw,32px); align-items:start;
+  }
+  .wire-sidebar{
+    width:100%; position:sticky; top:calc(var(--chrome-h) + 10px);
+    height:calc(100vh - var(--chrome-h) - 28px); max-height:calc(100vh - var(--chrome-h) - 28px);
+    display:flex; flex-direction:column;
+    border-radius:12px; overflow:hidden;
+    border:1px solid rgba(255,255,255,0.1);
+    background:linear-gradient(165deg, rgba(22,26,34,0.82) 0%, rgba(12,14,18,0.78) 100%);
+    backdrop-filter:blur(22px); -webkit-backdrop-filter:blur(22px);
+    box-shadow:0 16px 48px rgba(0,0,0,0.38), 0 1px 0 rgba(255,255,255,0.07) inset, 0 0 0 1px rgba(255,255,255,0.03);
+    transform:translateZ(12px); transition:transform .35s cubic-bezier(.4,0,.2,1), box-shadow .35s ease;
+    z-index:10;
+  }
+  .wire-sidebar:hover{ box-shadow:0 20px 56px rgba(0,0,0,0.42), 0 1px 0 rgba(255,255,255,0.09) inset, 0 0 0 1px rgba(224,141,60,0.08); }
+  .stories-pager{
+    display:flex; align-items:center; justify-content:center; gap:14px;
+    margin-top:24px; padding-top:18px; border-top:1px solid var(--border);
+    animation:fade .3s ease;
+  }
+  .stories-pager .pager-label{
+    font-family:'JetBrains Mono',monospace; font-size:12px; color:var(--ink-dim);
+    letter-spacing:0.4px; min-width:72px; text-align:center; user-select:none;
+  }
+  .pager-btn{
+    font-family:'JetBrains Mono',monospace; font-size:13px;
+    background:rgba(18,21,27,0.55); border:1px solid rgba(255,255,255,0.08);
+    color:var(--ink-dim); width:36px; height:36px; padding:0; border-radius:50%;
+    cursor:pointer; backdrop-filter:blur(8px); transition:all .2s ease;
+    display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;
+  }
+  .pager-btn:hover:not(:disabled){ color:var(--saffron); border-color:var(--saffron-dim); background:rgba(224,141,60,0.08); }
+  .pager-btn:disabled{ opacity:0.3; cursor:not-allowed; }
+  .stories-page{ animation:storiesIn .4s cubic-bezier(.4,0,.2,1); }
+  #stories-list .story{ scroll-margin-top:calc(var(--chrome-h) + 12px); }
+  @keyframes storiesIn{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+  .wire-sidebar-head{
+    padding:20px 20px 14px; border-bottom:1px solid rgba(255,255,255,0.06); flex-shrink:0;
+    background:linear-gradient(180deg, rgba(224,141,60,0.04), transparent);
+  }
+  .wire-sidebar-head .head-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+  .wire-sidebar-head h2{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--ink-faint); margin:0; font-weight:500; }
+  .wire-live-pill{ font-family:'JetBrains Mono',monospace; font-size:9.5px; letter-spacing:0.6px; color:var(--green); border:1px solid var(--green-dim); padding:3px 8px; border-radius:20px; display:flex; align-items:center; gap:5px; }
+  .wire-live-pill .dot{ width:5px; height:5px; border-radius:50%; background:var(--green); animation:pulse 2s infinite; }
+  .wire-sidebar-body{ flex:1; overflow-y:auto; padding:14px 16px 24px; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
+  .wire-sidebar-body::-webkit-scrollbar{ width:5px; }
+  .wire-sidebar-body::-webkit-scrollbar-thumb{ background:var(--border); border-radius:4px; }
+  .wire-sidebar .filter-row{ margin-bottom:10px; gap:6px; }
+  .wire-sidebar .filter-btn{ font-size:10px; padding:5px 10px; }
+  .wire-sidebar .glass-filters{ padding:8px 10px; margin-bottom:8px; }
+  .wire-sidebar .wire-grid{ gap:8px; }
+  .wire-sidebar .wire-card{ padding:12px 14px; }
+  .wire-sidebar .wire-card a{ font-size:13px; }
+  .wire-toggle{
+    display:none; position:fixed; bottom:20px; right:20px; z-index:60;
+    font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.5px;
+    background:rgba(18,21,27,0.85); backdrop-filter:blur(12px); border:1px solid rgba(224,141,60,0.35);
+    color:var(--saffron); padding:10px 16px; border-radius:24px; cursor:pointer;
+    box-shadow:0 4px 20px rgba(0,0,0,0.4); transition:transform .2s, box-shadow .2s;
+  }
+  .wire-toggle:hover{ transform:translateY(-2px); box-shadow:0 6px 28px rgba(224,141,60,0.2); }
+  @media (max-width:1100px){
+    .app-shell, .app-shell.solo{ grid-template-columns:1fr; padding:0 clamp(16px,4vw,28px); }
+    main{ grid-column:1; padding:28px 0 80px; }
+    .news-columns{ grid-template-columns:1fr; }
+    .wire-sidebar{
+      position:fixed; top:0; right:0; bottom:0;
+      height:100vh; max-height:100vh; width:min(380px,92vw); border-radius:0;
+      transform:translateX(100%) translateZ(0); border-left:1px solid rgba(255,255,255,0.1);
+      z-index:45;
+    }
+    .wire-sidebar.open{ transform:translateX(0) translateZ(0); }
+    .wire-sidebar-backdrop{
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); backdrop-filter:blur(2px); z-index:39;
+    }
+    .wire-sidebar-backdrop.open{ display:block; }
+    .wire-toggle{ display:block; }
+    .wire-sidebar-close{
+      display:block; background:none; border:none; color:var(--ink-dim); cursor:pointer; font-size:18px; line-height:1; padding:4px;
+    }
+    .wire-sidebar-close:hover{ color:var(--ink); }
+  }
+  .wire-sidebar-close{ display:none; }
   .panel{ display:none; animation:fade .35s ease; } .panel.active{ display:block; }
   @keyframes fade{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;} }
 
@@ -55,8 +185,8 @@
   .section-label{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--ink-faint); margin:0 0 8px; }
   h2.page-title{ font-family:'Newsreader',serif; font-size:30px; font-weight:600; margin:0 0 6px; }
 
-  .story{ border:1px solid rgba(255,255,255,0.08); border-radius:var(--radius); background:rgba(18,21,27,0.55); backdrop-filter:blur(12px); margin-bottom:16px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.2); transition:border-color .2s, box-shadow .2s; }
-  .story:hover{ border-color:rgba(224,141,60,0.2); box-shadow:0 6px 28px rgba(0,0,0,0.28); }
+  .story{ border:1px solid rgba(255,255,255,0.08); border-radius:8px; background:rgba(18,21,27,0.55); backdrop-filter:blur(12px); margin-bottom:16px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.22), 0 1px 0 rgba(255,255,255,0.04) inset; transition:transform .25s cubic-bezier(.4,0,.2,1), border-color .2s, box-shadow .25s; transform:translateZ(0); }
+  .story:hover{ border-color:rgba(224,141,60,0.22); transform:translateY(-3px) translateZ(6px); box-shadow:0 14px 36px rgba(0,0,0,0.32), 0 1px 0 rgba(255,255,255,0.06) inset; }
   .story-head{ padding:20px 22px; cursor:pointer; display:flex; justify-content:space-between; gap:18px; }
   .story-head:hover{ background:var(--panel-2); }
   .story-tags{ display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
@@ -190,6 +320,7 @@
 </head>
 <body>
 
+<div class="site-chrome">
 <header class="topbar">
   <div class="brand">
     <span class="tricolor"><span class="s1"></span><span class="s2"></span><span class="s3"></span></span>
@@ -201,6 +332,8 @@
   </div>
 </header>
 
+<div id="pipeline-health-strip" class="health-strip" hidden></div>
+
 <nav class="tabs">
   <button class="tab active" data-tab="news">News</button>
   <button class="tab" data-tab="budget">Budget</button>
@@ -209,31 +342,51 @@
   <button class="tab" data-tab="rankings">Rankings</button>
   <button class="tab" data-tab="constitution">Constitution</button>
 </nav>
+</div>
 
+<div class="wire-sidebar-backdrop" id="wire-backdrop"></div>
+<button class="wire-toggle" id="wire-toggle" type="button" aria-label="Open wire feed">Wire feed</button>
+
+<div class="app-shell">
 <main>
   <div id="setup-banner" style="display:none;" class="setup-banner"></div>
 
   <section id="news" class="panel active">
     <p class="section-label">Flagship module · live</p>
     <p class="lede">Stories worth actually understanding — chosen because they touch <em>education</em>, <em>power</em>, and <em>governance</em>. Open one to see how it started, what's contested, and what you can do. New items are checked twice a day; anything auto-tracked is labelled as such.</p>
-    <div id="stories-list"><div class="skel"></div><div class="skel"></div></div>
 
-    <p class="section-label" style="margin-top:36px;">Wire feed — raw, unedited</p>
-    <div class="filter-row glass-filters glass" id="wire-topic-filters">
-      <button class="filter-btn active" data-topic="high">High signal</button>
-      <button class="filter-btn" data-topic="governance">Governance</button>
-      <button class="filter-btn" data-topic="education">Education</button>
-      <button class="filter-btn" data-topic="health">Health</button>
-      <button class="filter-btn" data-topic="economy">Economy</button>
-      <button class="filter-btn" data-topic="energy">Energy</button>
-      <button class="filter-btn" data-topic="all">All</button>
+    <div class="news-columns">
+      <div class="news-stories-col">
+        <div id="stories-list"><div class="skel"></div><div class="skel"></div></div>
+        <nav id="stories-pagination" class="stories-pager" hidden aria-label="Stories pagination"></nav>
+      </div>
+      <aside id="wire-sidebar" class="wire-sidebar" aria-label="Wire feed">
+        <div class="wire-sidebar-head">
+          <div class="head-row">
+            <h2>Wire feed — raw, unedited</h2>
+            <span class="wire-live-pill"><span class="dot"></span>Live</span>
+            <button class="wire-sidebar-close" id="wire-close" type="button" aria-label="Close wire feed">&times;</button>
+          </div>
+        </div>
+        <div class="wire-sidebar-body">
+          <div class="filter-row glass-filters glass" id="wire-topic-filters">
+            <button class="filter-btn active" data-topic="high">High signal</button>
+            <button class="filter-btn" data-topic="governance">Governance</button>
+            <button class="filter-btn" data-topic="education">Education</button>
+            <button class="filter-btn" data-topic="health">Health</button>
+            <button class="filter-btn" data-topic="economy">Economy</button>
+            <button class="filter-btn" data-topic="energy">Energy</button>
+            <button class="filter-btn" data-topic="all">All</button>
+          </div>
+          <div class="filter-row" id="wire-filters">
+            <button class="filter-btn active" data-range="1">Today</button>
+            <button class="filter-btn" data-range="7">This week</button>
+            <button class="filter-btn" data-range="9999">All time</button>
+          </div>
+          <div id="wire-list" class="wire-grid"></div>
+        </div>
+      </aside>
     </div>
-    <div class="filter-row" id="wire-filters">
-      <button class="filter-btn active" data-range="1">Today</button>
-      <button class="filter-btn" data-range="7">This week</button>
-      <button class="filter-btn" data-range="9999">All time</button>
-    </div>
-    <div id="wire-list" class="wire-grid"></div>
   </section>
 
   <section id="budget" class="panel">
@@ -253,6 +406,7 @@
     <p class="section-label">18th Lok Sabha</p>
     <h2 class="page-title">Bill tracker</h2>
     <table><thead><tr><th>Bill</th><th>Touches</th><th>Stage</th></tr></thead><tbody id="bill-table-body"></tbody></table>
+    <p class="src" id="bills-checked"></p>
     <div class="links-row">
       <span class="link-chip"><a href="https://sansad.in" target="_blank">Digital Sansad</a> </span>
       <span class="link-chip"><a href="https://prsindia.org/billtrack" target="_blank">Parliament Bills Tracker</a></span>
@@ -295,6 +449,7 @@
     <b>Live feed.</b> Refreshed twice daily from official sources only — Press Information Bureau and market data.
   </div>
 </main>
+</div>
 
 <script>
 // ======================= CONFIG =======================
@@ -328,16 +483,57 @@ function tick(){
 }
 tick(); setInterval(tick,1000);
 
-// Tabs
+function syncChromeOffset(){
+  const chrome = document.querySelector('.site-chrome');
+  if (!chrome) return;
+  const h = Math.ceil(chrome.getBoundingClientRect().height);
+  document.documentElement.style.setProperty('--chrome-h', h + 'px');
+}
+syncChromeOffset();
+window.addEventListener('resize', syncChromeOffset);
+
+// Tabs + wire sidebar visibility
+const wireSidebar = document.getElementById('wire-sidebar');
+const wireToggle = document.getElementById('wire-toggle');
+const wireBackdrop = document.getElementById('wire-backdrop');
+const wireClose = document.getElementById('wire-close');
+
+function updateWireToggle(){
+  const mobile = window.innerWidth <= 1100;
+  const onNews = document.getElementById('news').classList.contains('active');
+  wireToggle.style.display = mobile && onNews ? 'block' : 'none';
+}
+function setWireSidebarVisible(show){
+  document.querySelector('.app-shell').classList.toggle('solo', !show);
+  if (!show) closeWireDrawer();
+  updateWireToggle();
+}
+window.addEventListener('resize', updateWireToggle);
+function openWireDrawer(){
+  wireSidebar.classList.add('open');
+  wireBackdrop.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeWireDrawer(){
+  wireSidebar.classList.remove('open');
+  wireBackdrop.classList.remove('open');
+  document.body.style.overflow = '';
+}
+wireToggle.addEventListener('click', openWireDrawer);
+wireClose.addEventListener('click', closeWireDrawer);
+wireBackdrop.addEventListener('click', closeWireDrawer);
+
 document.querySelectorAll('.tab').forEach(btn=>{
   btn.addEventListener('click', ()=>{
     document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById(btn.dataset.tab).classList.add('active');
+    setWireSidebarVisible(btn.dataset.tab === 'news');
     window.scrollTo({top:0, behavior:'smooth'});
   });
 });
+setWireSidebarVisible(true);
 
 function toggleStory(el){ el.classList.toggle('open'); }
 function esc(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -378,6 +574,87 @@ function shortSource(src){
 }
 
 // ----------------------- NEWS: stories + stations -----------------------
+const STORIES_PER_PAGE = 5;
+let storiesCache = [];
+let stationsByStory = {};
+let currentStoryPage = 0;
+
+function storyCardHtml(s){
+  const statusTagClass = s.status_kind === 'jpc' ? 'status-jpc' : s.status_kind === 'auto' ? 'status-auto' : 'status-draft';
+  const rail = (stationsByStory[s.slug]||[]).map(st => `
+    <div class="station"><span class="dot"></span><div>
+      <span class="date">${fmtDate(st.station_date)}</span><p>${esc(st.station_text)}</p>
+    </div></div>`).join('');
+  const forBox = (s.for_points||[]).length ? `<div class="box for"><h4>The case for it</h4><ul>${(s.for_points||[]).map(p=>`<li>${esc(p)}</li>`).join('')}</ul></div>` : '';
+  const againstBox = (s.against_points||[]).length ? `<div class="box against"><h4>What critics raise</h4><ul>${(s.against_points||[]).map(p=>`<li>${esc(p)}</li>`).join('')}</ul></div>` : '';
+  return `
+  <article class="story" id="story-${s.slug}">
+    <div class="story-head" onclick="toggleStory(document.getElementById('story-${s.slug}'))">
+      <div>
+        <div class="story-tags">
+          ${(s.tags||[]).map(t=>`<span class="tag gov">${esc(t)}</span>`).join('')}
+          <span class="tag ${statusTagClass}">${esc(s.status_label||'')}</span>
+          ${s.auto_tracked ? '<span class="tag status-auto">auto-tracked</span>' : ''}
+        </div>
+        <h3>${esc(s.title)}</h3>
+        <p class="dek">${esc(s.dek||'')}</p>
+      </div>
+      <span class="story-toggle mono">TIMELINE</span>
+    </div>
+    <div class="story-body">
+      <p class="section-label" style="margin-top:20px;">How this got here</p>
+      <div class="rail">${rail || '<p style="color:var(--ink-faint);font-size:13px;">No dated stations yet.</p>'}</div>
+      ${s.current_status ? `<div class="callout"><strong>Current status —</strong> ${esc(s.current_status)}</div>` : ''}
+      ${(forBox || againstBox) ? `<div class="split">${forBox}${againstBox}</div>` : ''}
+      ${s.what_to_do ? `<p class="section-label">What you can actually do</p><p style="font-size:13.5px;color:var(--ink-dim);line-height:1.6;max-width:640px;">${esc(s.what_to_do)}</p>` : ''}
+    </div>
+  </article>`;
+}
+
+const STORY_SCROLL_OFFSET = () => {
+  const raw = getComputedStyle(document.documentElement).getPropertyValue('--chrome-h').trim();
+  const h = parseFloat(raw) || 118;
+  return h + 12;
+};
+
+function scrollToFirstStory(){
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const first = document.querySelector('#stories-list .story');
+      if (!first) return;
+      const top = first.getBoundingClientRect().top + window.scrollY - STORY_SCROLL_OFFSET();
+      window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+    });
+  });
+}
+
+function renderStoriesPage(page, scrollToTop){
+  const list = document.getElementById('stories-list');
+  const pager = document.getElementById('stories-pagination');
+  const total = storiesCache.length;
+  const totalPages = Math.max(1, Math.ceil(total / STORIES_PER_PAGE));
+  currentStoryPage = Math.max(0, Math.min(page, totalPages - 1));
+  const start = currentStoryPage * STORIES_PER_PAGE;
+  const slice = storiesCache.slice(start, start + STORIES_PER_PAGE);
+
+  list.innerHTML = `<div class="stories-page">${slice.map(storyCardHtml).join('')}</div>`;
+
+  if (total <= STORIES_PER_PAGE) {
+    pager.hidden = true;
+    return;
+  }
+  pager.hidden = false;
+  pager.innerHTML = `
+    <button class="pager-btn" type="button" data-nav="prev" aria-label="Previous page" ${currentStoryPage === 0 ? 'disabled' : ''}>←</button>
+    <span class="pager-label">${currentStoryPage + 1} of ${totalPages}</span>
+    <button class="pager-btn" type="button" data-nav="next" aria-label="Next page" ${currentStoryPage >= totalPages - 1 ? 'disabled' : ''}>→</button>`;
+
+  pager.querySelector('[data-nav="prev"]')?.addEventListener('click', () => renderStoriesPage(currentStoryPage - 1, true));
+  pager.querySelector('[data-nav="next"]')?.addEventListener('click', () => renderStoriesPage(currentStoryPage + 1, true));
+
+  if (scrollToTop) scrollToFirstStory();
+}
+
 async function loadStories(){
   const list = document.getElementById('stories-list');
   if (!supa) { list.innerHTML = '<p class="empty">Connect Supabase to load stories.</p>'; return; }
@@ -387,40 +664,12 @@ async function loadStories(){
     if (!stories || !stories.length) { list.innerHTML = '<p class="empty">No stories yet — the first Action run will populate this.</p>'; return; }
 
     const { data: stations } = await supa.from('story_stations').select('*').order('station_date', {ascending:true});
-    const byStory = {};
-    (stations||[]).forEach(s => { (byStory[s.story_slug] ||= []).push(s); });
+    stationsByStory = {};
+    (stations||[]).forEach(s => { (stationsByStory[s.story_slug] ||= []).push(s); });
 
-    list.innerHTML = stories.map(s => {
-      const statusTagClass = s.status_kind === 'jpc' ? 'status-jpc' : s.status_kind === 'auto' ? 'status-auto' : 'status-draft';
-      const rail = (byStory[s.slug]||[]).map(st => `
-        <div class="station"><span class="dot"></span><div>
-          <span class="date">${fmtDate(st.station_date)}</span><p>${esc(st.station_text)}</p>
-        </div></div>`).join('');
-      const forBox = (s.for_points||[]).length ? `<div class="box for"><h4>The case for it</h4><ul>${(s.for_points||[]).map(p=>`<li>${esc(p)}</li>`).join('')}</ul></div>` : '';
-      const againstBox = (s.against_points||[]).length ? `<div class="box against"><h4>What critics raise</h4><ul>${(s.against_points||[]).map(p=>`<li>${esc(p)}</li>`).join('')}</ul></div>` : '';
-      return `
-      <article class="story" id="story-${s.slug}">
-        <div class="story-head" onclick="toggleStory(document.getElementById('story-${s.slug}'))">
-          <div>
-            <div class="story-tags">
-              ${(s.tags||[]).map(t=>`<span class="tag gov">${esc(t)}</span>`).join('')}
-              <span class="tag ${statusTagClass}">${esc(s.status_label||'')}</span>
-              ${s.auto_tracked ? '<span class="tag status-auto">auto-tracked</span>' : ''}
-            </div>
-            <h3>${esc(s.title)}</h3>
-            <p class="dek">${esc(s.dek||'')}</p>
-          </div>
-          <span class="story-toggle mono">TIMELINE</span>
-        </div>
-        <div class="story-body">
-          <p class="section-label" style="margin-top:20px;">How this got here</p>
-          <div class="rail">${rail || '<p style="color:var(--ink-faint);font-size:13px;">No dated stations yet.</p>'}</div>
-          ${s.current_status ? `<div class="callout"><strong>Current status —</strong> ${esc(s.current_status)}</div>` : ''}
-          ${(forBox || againstBox) ? `<div class="split">${forBox}${againstBox}</div>` : ''}
-          ${s.what_to_do ? `<p class="section-label">What you can actually do</p><p style="font-size:13.5px;color:var(--ink-dim);line-height:1.6;max-width:640px;">${esc(s.what_to_do)}</p>` : ''}
-        </div>
-      </article>`;
-    }).join('');
+    storiesCache = stories;
+    currentStoryPage = 0;
+    renderStoriesPage(0, false);
   } catch (e) {
     list.innerHTML = `<p class="empty">Couldn't load stories (${esc(e.message||String(e))}).</p>`;
   }
@@ -517,8 +766,15 @@ async function loadBills(){
   if (!supa) return;
   try {
     const { data } = await supa.from('bills').select('*').order('sort_order');
-    document.getElementById('bill-table-body').innerHTML = (data||[]).map(b=>`
-      <tr><td class="primary">${esc(b.name)}</td><td>${esc(b.touches)}</td><td><span class="pill ${esc(b.stage)}">${esc(b.stage_label)}</span></td></tr>`).join('');
+    document.getElementById('bill-table-body').innerHTML = (data||[]).map(b=>{
+      const name = b.detail_url
+        ? `<a href="${esc(b.detail_url)}" target="_blank" rel="noopener">${esc(b.name)}</a>`
+        : esc(b.name);
+      return `<tr><td class="primary">${name}</td><td>${esc(b.touches)}</td><td><span class="pill ${esc(b.stage)}">${esc(b.stage_label)}</span></td></tr>`;
+    }).join('');
+    const checked = (data||[]).map(b => b.last_checked_at).filter(Boolean).sort().reverse()[0];
+    const foot = document.getElementById('bills-checked');
+    if (foot) foot.textContent = checked ? `Last checked against PRS: ${fmtDate(checked)}.` : '';
   } catch (e) { console.error(e); }
 }
 
@@ -592,6 +848,55 @@ document.querySelectorAll('#rank-filters .filter-btn').forEach(btn=>{
   });
 });
 
+function shortHealthSource(src){
+  if (!src) return '';
+  if (src.includes('PIB')) return 'PIB';
+  if (src.includes('Times of India')) return 'TOI';
+  if (src.includes('Hindu')) return 'Hindu';
+  if (src.includes('Hindustan')) return 'HT';
+  if (src.includes('Express')) return 'IE';
+  if (src.includes('Markets')) return 'Markets';
+  if (src.includes('Bills')) return 'Bills';
+  if (src.includes('Budget')) return 'Budget';
+  if (src.startsWith('Rankings')) return src.replace('Rankings · ', '');
+  return src.split('·')[0].trim();
+}
+function relativeAgo(iso){
+  if (!iso) return '';
+  const ms = Date.now() - new Date(iso).getTime();
+  if (Number.isNaN(ms) || ms < 0) return '';
+  const mins = Math.round(ms / 60000);
+  if (mins < 60) return mins <= 1 ? 'just now' : mins + 'm ago';
+  const hrs = Math.round(mins / 60);
+  if (hrs < 24) return hrs + 'h ago';
+  const days = Math.round(hrs / 24);
+  return days + 'd ago';
+}
+async function loadPipelineHealth(){
+  const strip = document.getElementById('pipeline-health-strip');
+  if (!supa || !strip) return;
+  try {
+    const { data, error } = await supa.from('pipeline_health').select('*').order('run_at', {ascending:false}).limit(20);
+    if (error) throw error;
+    const latest = {};
+    (data||[]).forEach(row => { if (!latest[row.source]) latest[row.source] = row; });
+    const rows = Object.values(latest);
+    if (!rows.length) { strip.hidden = true; strip.classList.remove('visible'); syncChromeOffset(); return; }
+    const newest = rows.reduce((a,b) => (a.run_at > b.run_at ? a : b));
+    strip.innerHTML = rows.map(r =>
+      `<span class="health-chip ${r.ok ? 'ok' : 'fail'}" title="${esc(r.error||'')}">` +
+      `<span class="dot"></span>${esc(shortHealthSource(r.source))}</span>`
+    ).join('') + `<span class="health-when">${esc(relativeAgo(newest.run_at))}</span>`;
+    strip.hidden = false;
+    strip.classList.add('visible');
+    syncChromeOffset();
+  } catch (e) {
+    strip.hidden = true;
+    strip.classList.remove('visible');
+    syncChromeOffset();
+  }
+}
+
 // ----------------------- CONSTITUTION -----------------------
 async function loadConstitution(){
   if (!supa) return;
@@ -618,7 +923,7 @@ async function boot(){
   } catch (e) {
     showSetupBanner(`<strong style="color:var(--red)">Connected, but the query failed:</strong> ${esc(e.message||String(e))}. Did you run <code>supabase/schema.sql</code> and <code>supabase/seed.sql</code> in the Supabase SQL editor yet?`);
   }
-  loadStories(); loadWire(); loadBudget(); loadBills(); loadMarkets(); loadRankings(); loadConstitution();
+  loadStories(); loadWire(); loadBudget(); loadBills(); loadMarkets(); loadRankings(); loadConstitution(); loadPipelineHealth();
 }
 boot();
 </script>

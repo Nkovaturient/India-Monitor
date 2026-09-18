@@ -4,13 +4,19 @@
 
 **One-liner:** An agentic civic-intelligence system that surfaces only what matters for education, governance, power, and people’s development — with official sources, timelines of how each story got here, and end-to-end insight so Indians speak from data, not rumour or folktale.
 
-**Current phase: 3**
+**Current phase: 4**
 
 ```
-GitHub Actions (cron, 2×/day)
+GitHub Actions
         │
-        ├─ ingest.py      → PIB + 4 newspapers + markets → raw_items, market_snapshots, pipeline_health
-        └─ synthesize.py  → Claude (grounded in fetched text only) → stories, story_stations
+        ├─ refresh.yml (2×/day)
+        │     ingest.py       → PIB + 4 newspapers + markets → raw_items, market_snapshots, pipeline_health
+        │     track_bills.py  → PRS Bill Track → bills, bill_status_history
+        │     synthesize.py   → Claude (grounded in fetched text only) → stories, story_stations
+        ├─ rankings-refresh.yml (monthly, 1st)
+        │     rankings_refresh.py → rankings_candidates (never auto-writes rankings)
+        └─ budget-refresh.yml (2 Feb reminder / manual)
+              budget_parse.py → budget_facts, budget_sectors (no-op unless BUDGET_PDF_URL is set)
 
 Supabase (Postgres + REST + RLS)
         │  anon key, read-only in the browser
@@ -28,7 +34,7 @@ Schema, seed data, static UI. Manual / curated content for stories, bills, budge
 ### Phase 2 — Live feed
 Twice-daily automation: PIB RSS + Yahoo Finance markets → Supabase; LLM synthesis into grounded story stations. Site reads live from the DB (no rebuild step).
 
-### Phase 3 — Current
+### Phase 3 — Live expansion
 What shipped on top of Phase 2:
 
 | Change | Detail |
@@ -45,6 +51,19 @@ What shipped on top of Phase 2:
 
 ✅ Applied Phase 3 DB changes in order: `supabase/migration_phase3.sql`, then `supabase/seed_phase3_rankings.sql`, then `supabase/migration_phase3_topic.sql`.
 
+### Phase 4 — Current
+No new tables. Reuses Phase 3 schema.
+
+| Change | Detail |
+|---|---|
+| Shared helpers | `scripts/common.py` — HTTP + Supabase + `pipeline_health` writes used by all jobs |
+| Health strip | Latest per-source ok/fail on the site chrome (`loadPipelineHealth`) |
+| Bill tracker | `track_bills.py` scrapes PRS HTML; appends `bill_status_history` only on change; backfill slugs via `supabase/seed_bill_prs_slugs.sql` |
+| Rankings refresh | Monthly calendar job; real fetchers for passport / happiness / press / CPI / GHI / GII / AQI; others get a **stub candidate** (no invented rank). Promote with `python scripts/promote_ranking.py --candidate-id N` |
+| Budget PDF | `budget_parse.py` upserts matched `budget_facts` / `budget_sectors` slugs; skips entirely if `BUDGET_PDF_URL` is unset |
+
+Done and Ran `supabase/seed_bill_prs_slugs.sql` once in the SQL editor so existing bills have `prs_slug` values.
+
 ---
 
 ## Status by module
@@ -55,10 +74,10 @@ What shipped on top of Phase 2:
 | Market snapshot | **Automated**, 2×/day | Yahoo Finance |
 | Story timelines | **Automated**, 2×/day | Grounded LLM; see § safeguards |
 | Auto-tracked new stories | **Automated**, cautious | Only substantive bill/scheme/policy-style items |
-| Pipeline health | **Automated**, 2×/day | Written by ingest; readable from DB/site |
-| Bill tracker | **Seeded + schema ready** | History table exists; status still manual |
-| Budget figures | **Seeded**, annual | PDF pipeline not built |
-| Rankings | **Seeded** (18 indexes) | Candidates table ready; no auto-refresh job yet |
+| Pipeline health | **Automated + UI** | Strip under the header; written by ingest / bills / rankings / budget |
+| Bill tracker | **Automated**, 2×/day | PRS scrape; history append-only; Digital Sansad still a manual cross-check |
+| Budget figures | **Seeded + yearly parser** | Set `BUDGET_PDF_URL` (e.g. `https://www.indiabudget.gov.in/doc/eb/vol1.pdf`) and run the budget workflow |
+| Rankings | **Candidates automated**, public ranks human-promoted | 18 indexes; calendar windows in `scripts/rankings_registry.py` |
 | Constitution cards | **Curated**, static by design | Never LLM-authored |
 | Newspaper → UI quotes | **Paraphrase / cite carefully** | Prefer links; short quotes only if shown |
 
@@ -88,24 +107,28 @@ Optional later: write stations to a staging table and approve via PR / Slack.
 
 ## Setup (one-time)
 
-1. Create / use the Supabase project; run base schema + seeds, then Phase 3 migration + rankings seed.
-2. Push to a **public** GitHub repo. Add Actions secrets: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`.
+1. Create / use the Supabase project; run base schema + seeds, then Phase 3 migration + rankings seed, then `supabase/seed_bill_prs_slugs.sql`.
+2. Push to a **public** GitHub repo. Add Actions secrets: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`. Optional: `BUDGET_PDF_URL` for the yearly budget job.
 3. Point Pages (or your host) at the static site; put **anon** URL + key in the frontend (never service_role).
 4. Run **Refresh India Monitor data** once via `workflow_dispatch`. Cron: 06:00 and 18:00 IST.
+5. Rankings: after a monthly run, inspect `rankings_candidates` and promote with `python scripts/promote_ranking.py --candidate-id N` (needs the same Supabase env vars).
+
+Dry-run locally (no writes):
+
+```bash
+python scripts/track_bills.py --dry-run
+python scripts/rankings_refresh.py --dry-run --all
+python scripts/budget_parse.py --dry-run --url https://www.indiabudget.gov.in/doc/eb/vol1.pdf
+```
 
 ---
 
 ## Forward ahead — not built yet
 
-- **Bill tracker automation** — Digital Sansad / PRS scrape; wire status changes into `bill_status_history` (schema is ready) 
+- **Digital Sansad scrape** — PRS covers status well enough for now; Sansad remains a linked cross-check, not a second parser.
+- **Review gate (optional)** — staging table + approve path if auto-publish for stories becomes too loose.
 
-> PRS's Bill Track page is fully server-rendered plain HTML — no JavaScript needed, requests + a parser is enough. That closes out the Playwright question entirely for now, and I can see live statuses right in it (VBSA is "In Committee", Electricity Amendment is "Draft" — matches our seed data). Good sign the pipeline design is sound; something in the fetch layer is the likely culprit for "only 2 stories." I'll harden that and add observability so you're not flying blind next time.
-
-- **Rankings refresh job** — periodic fetch into `rankings_candidates`; human promote to `rankings` [since world index rankings happens annually, we just need to run this fetch only on the day the rankings for the 18records are updated. for isntance, suppose, when the rankng for 'Henley passport index' is updated, then only refresh job runs strategically, timely (not blind shot). 
-  - There are no fixed, permanent calendar dates for these releases, as the publishing organizations alter their exact launch dates each year based on data compilation timelines. However, a few specific reports target symbolic global events, such as **the World Happiness Report on March 20th and the World Press Freedom Index on May 3rd.**  ] Take help from these:-
-
-
-While these reports apply globally, the updated metrics and rankings for India are disclosed simultaneously at the time of each global launch.
+Rankings release calendar (used by `rankings_registry.py`; publishers shift dates year to year):
 
 | #  | Index / Report Name                  | Publishing Organization                          | Usual Release Timeline                          |
 |----|--------------------------------------|--------------------------------------------------|-------------------------------------------------|
@@ -127,8 +150,3 @@ While these reports apply globally, the updated metrics and rankings for India a
 | 16 | World Press Freedom Index            | Reporters Without Borders (RSF)                  | May 3 (World Press Freedom Day)                 |
 | 17 | Rule of Law Index                    | World Justice Project (WJP)                      | October (Annually)                              |
 | 18 | Global Soft Power Index              | Brand Finance                                    | February / March (Annually)                     |
-
-
-- **Budget PDF parsing** — yearly `indiabudget.gov.in` tables via something like `pdfplumber` → `budget_sectors`
-- **Health on the UI** — surface `pipeline_health` as an honest “last updated / source failed” strip
-- **Review gate (optional)** — staging table + approve path if auto-publish for stories becomes too loose
