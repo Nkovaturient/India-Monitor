@@ -120,7 +120,7 @@ sequenceDiagram
 
 | Action | Cap | Counts when |
 |---|---|---|
-| Search | 3 | Fresh Serp call (cache hit does not) |
+| Search | 3 | Fresh Serp with ≥1 Hindu/IE hit (cache hit or zero results do not charge) |
 | Insight | 5 | Validation passes |
 | Audio | 5 | ElevenLabs run |
 
