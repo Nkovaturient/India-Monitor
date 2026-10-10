@@ -41,11 +41,18 @@
   .tricolor span{ flex:1; } .tricolor .s1{background:var(--saffron);} .tricolor .s2{background:#e9e6dc;} .tricolor .s3{background:var(--green);}
   .brand-text h1{ font-family:'Newsreader',serif; font-weight:600; font-size:21px; margin:0; letter-spacing:0.3px; line-height:1.1; }
   .brand-text p{ margin:2px 0 0; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--ink-dim); font-family:'JetBrains Mono',monospace; }
-  .meta{ display:flex; align-items:center; gap:14px; font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--ink-dim); }
-  .live-badge{ border:1px solid rgba(255,255,255,0.1); padding:5px 10px; border-radius:20px; letter-spacing:0.5px; display:flex; align-items:center; gap:6px; background:rgba(18,21,27,0.45); }
-  .live-badge .dot{ width:6px; height:6px; border-radius:50%; background:var(--green); display:inline-block; animation:pulse 2s infinite; }
-  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.3;} }
-  .clock{ min-width:70px; text-align:right; }
+  .meta{ display:flex; align-items:center; gap:10px; font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--ink-dim); flex-wrap:wrap; justify-content:flex-end; }
+  .glass-pill{
+    background:linear-gradient(145deg, rgba(255,255,255,0.11) 0%, rgba(255,255,255,0.04) 48%, rgba(18,21,27,0.35) 100%);
+    border:1px solid rgba(255,255,255,0.14);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    box-shadow:0 4px 18px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.1);
+  }
+  .live-badge{ padding:7px 12px; border-radius:999px; letter-spacing:0.6px; display:inline-flex; align-items:center; gap:7px; font-size:11px; color:var(--ink); }
+  .live-badge .dot{ width:7px; height:7px; border-radius:50%; background:var(--green); display:inline-block; animation:pulse 2s infinite; box-shadow:0 0 10px rgba(46,158,110,0.55); }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.35;} }
+  .clock-pill{ min-width:108px; text-align:center; padding:7px 12px; border-radius:999px; font-size:11px; color:var(--ink); letter-spacing:0.4px; }
 
   .health-strip{
     display:none; align-items:center; gap:10px; flex-wrap:wrap;
@@ -425,7 +432,39 @@
   .audio-close-btn{ background:none; border:none; color:var(--ink-faint); font-size:22px; cursor:pointer; line-height:1; padding:4px 8px; flex-shrink:0; }
   .audio-close-btn:hover{ color:var(--ink); }
   body.audio-player-open{ padding-bottom:96px; }
-  @media (max-width:700px){ .hindu-header{ flex-direction:column; } .search-box{ flex-direction:column; } .hindu-search-btn{ width:100%; } .audio-player-inner{ gap:10px; padding:10px 12px; } .audio-player-title{ font-size:13px; } }
+  .auth-chip{
+    font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600; letter-spacing:0.5px;
+    padding:8px 16px; border-radius:999px; cursor:pointer; transition:transform .2s, box-shadow .2s, border-color .2s, color .2s;
+    max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+    color:var(--saffron);
+    border:1px solid rgba(224,141,60,0.55);
+    background:linear-gradient(145deg, rgba(224,141,60,0.22) 0%, rgba(224,141,60,0.06) 45%, rgba(18,21,27,0.5) 100%);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+    box-shadow:0 4px 20px rgba(224,141,60,0.15), inset 0 1px 0 rgba(255,255,255,0.12);
+  }
+  .auth-chip:hover{ transform:translateY(-1px); border-color:rgba(224,141,60,0.75); box-shadow:0 6px 24px rgba(224,141,60,0.22), inset 0 1px 0 rgba(255,255,255,0.15); color:#f5c99a; }
+  .auth-chip.signed-in{
+    color:var(--green);
+    border-color:rgba(46,158,110,0.5);
+    background:linear-gradient(145deg, rgba(46,158,110,0.2) 0%, rgba(46,158,110,0.05) 50%, rgba(18,21,27,0.5) 100%);
+    box-shadow:0 4px 18px rgba(46,158,110,0.12), inset 0 1px 0 rgba(255,255,255,0.1);
+  }
+  .tab.tab-guest-locked{ opacity:0.72; }
+  .tab.tab-guest-locked::after{ content:'🔒'; font-size:9px; margin-left:6px; opacity:0.65; }
+  .auth-modal-panel{ width:min(400px,100%); }
+  .auth-tabs{ display:flex; gap:8px; margin-bottom:18px; }
+  .auth-tab-btn{ flex:1; font-family:'JetBrains Mono',monospace; font-size:11px; padding:10px; border-radius:var(--radius); border:1px solid var(--border); background:rgba(18,21,27,0.55); color:var(--ink-dim); cursor:pointer; }
+  .auth-tab-btn.active{ border-color:var(--saffron); color:var(--saffron); background:rgba(224,141,60,0.1); }
+  .auth-field{ margin-bottom:14px; }
+  .auth-field label{ display:block; font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:0.8px; text-transform:uppercase; color:var(--ink-faint); margin-bottom:6px; }
+  .auth-field input{ width:100%; background:var(--panel-2); border:1px solid var(--border); border-radius:var(--radius); padding:11px 14px; color:var(--ink); font-family:'Inter',sans-serif; font-size:14px; }
+  .auth-field input:focus{ outline:none; border-color:var(--saffron); }
+  .auth-msg{ font-size:13px; line-height:1.5; margin:0 0 14px; min-height:1.2em; }
+  .auth-msg.error{ color:var(--red); }
+  .auth-msg.ok{ color:var(--green); }
+  .auth-submit{ width:100%; margin-top:4px; }
+  @media (max-width:700px){ .hindu-header{ flex-direction:column; } .search-box{ flex-direction:column; } .hindu-search-btn{ width:100%; } .audio-player-inner{ gap:10px; padding:10px 12px; } .audio-player-title{ font-size:13px; } .auth-chip{ max-width:120px; } }
 </style>
 </head>
 <body>
@@ -437,8 +476,9 @@
     <div class="brand-text"><h1>INDIA MONITOR</h1><p>facts before opinions</p></div>
   </div>
   <div class="meta">
-    <span class="live-badge"><span class="dot"></span><span id="live-label">LIVE · CONNECTING…</span></span>
-    <span class="clock mono" id="clock">--:--:-- IST</span>
+    <button type="button" class="auth-chip" id="auth-chip" aria-label="Account">Sign in</button>
+    <span class="live-badge glass-pill"><span class="dot"></span><span id="live-label">LIVE · CONNECTING…</span></span>
+    <span class="clock glass-pill clock-pill mono" id="clock">--:--:-- IST</span>
   </div>
 </header>
 
@@ -446,13 +486,13 @@
 
 <nav class="tabs">
   <button class="tab active" data-tab="news">News</button>
-  <button class="tab" data-tab="budget">Budget</button>
-  <button class="tab" data-tab="parliament">Parliament</button>
-  <button class="tab" data-tab="markets">Markets</button>
-  <button class="tab" data-tab="rankings">Rankings</button>
-  <button class="tab" data-tab="constitution">Constitution</button>
-  <button class="tab" data-tab="news-buzzwords">Buzzwords</button>
-  <button class="tab" data-tab="hindu-news">Search &amp; Listen</button>
+  <button class="tab tab-guest-locked" data-tab="budget" data-auth-required="true">Budget</button>
+  <button class="tab tab-guest-locked" data-tab="parliament" data-auth-required="true">Parliament</button>
+  <button class="tab tab-guest-locked" data-tab="markets" data-auth-required="true">Markets</button>
+  <button class="tab tab-guest-locked" data-tab="rankings" data-auth-required="true">Rankings</button>
+  <button class="tab tab-guest-locked" data-tab="constitution" data-auth-required="true">Constitution</button>
+  <button class="tab tab-guest-locked" data-tab="news-buzzwords" data-auth-required="true">Buzzwords</button>
+  <button class="tab tab-guest-locked" data-tab="hindu-news" data-auth-required="true">Search &amp; Listen</button>
 </nav>
 </div>
 
@@ -627,6 +667,31 @@
   </div>
 </div>
 
+<div id="auth-modal-backdrop" class="hindu-modal-backdrop" hidden aria-hidden="true"></div>
+<div id="auth-modal" class="hindu-modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title" aria-hidden="true" hidden>
+  <div class="hindu-modal-panel glass auth-modal-panel">
+    <button type="button" class="hindu-modal-close" id="auth-modal-close" aria-label="Close">&times;</button>
+    <p class="section-label">Account</p>
+    <h3 id="auth-modal-title" class="hindu-modal-title" style="font-size:20px;margin-bottom:14px;">Sign in</h3>
+    <div class="auth-tabs" role="tablist">
+      <button type="button" class="auth-tab-btn active" data-auth-mode="signin" role="tab" aria-selected="true">Sign in</button>
+      <button type="button" class="auth-tab-btn" data-auth-mode="signup" role="tab" aria-selected="false">Create account</button>
+    </div>
+    <p id="auth-msg" class="auth-msg" aria-live="polite"></p>
+    <form id="auth-form" autocomplete="on">
+      <div class="auth-field">
+        <label for="auth-email">Email</label>
+        <input id="auth-email" name="email" type="email" required autocomplete="email" placeholder="you@example.com">
+      </div>
+      <div class="auth-field">
+        <label for="auth-password">Password</label>
+        <input id="auth-password" name="password" type="password" required minlength="6" autocomplete="current-password" placeholder="Min. 6 characters">
+      </div>
+      <button type="submit" class="hindu-btn-primary auth-submit" id="auth-submit">Sign in</button>
+    </form>
+  </div>
+</div>
+
 <div id="hindu-modal-backdrop" class="hindu-modal-backdrop" hidden aria-hidden="true"></div>
 <div id="hindu-modal" class="hindu-modal" role="dialog" aria-modal="true" aria-labelledby="hindu-modal-title" aria-hidden="true" hidden>
   <div class="hindu-modal-panel glass">
@@ -646,9 +711,210 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const configured = !SUPABASE_URL.startsWith("YOUR_") && !SUPABASE_ANON_KEY.startsWith("YOUR_");
 let supa = null;
-if (configured) {
-  supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let authSession = null;
+let authMode = 'signin';
+let pendingTabAfterAuth = null;
+const PUBLIC_TAB_ID = 'news';
+
+function isAuthenticated(){
+  return Boolean(authSession?.user?.id);
 }
+
+function isAuthRequiredTab(tabId){
+  return tabId && tabId !== PUBLIC_TAB_ID;
+}
+
+function updateGuestTabChrome(){
+  const guest = !isAuthenticated();
+  document.querySelectorAll('.tab[data-auth-required="true"]').forEach(tab => {
+    tab.classList.toggle('tab-guest-locked', guest);
+  });
+}
+
+function requestTabAccess(tabId){
+  if (!isAuthRequiredTab(tabId)) return true;
+  if (isAuthenticated()) return true;
+  pendingTabAfterAuth = tabId;
+  openAuthModal('signin');
+  const msg = document.getElementById('auth-msg');
+  if (msg){
+    msg.className = 'auth-msg';
+    msg.textContent = 'Sign in or create an account to open this section.';
+  }
+  return false;
+}
+if (configured) {
+  supa = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: {
+      persistSession: true,
+      detectSessionInUrl: true,
+      flowType: 'pkce',
+    },
+  });
+}
+
+function authRedirectUrl(){
+  return `${window.location.origin}${window.location.pathname}`;
+}
+
+function updateAuthChrome(){
+  const chip = document.getElementById('auth-chip');
+  if (!chip) return;
+  const user = authSession?.user;
+  if (user){
+    const label = user.email ? user.email.split('@')[0] : 'Account';
+    chip.textContent = label;
+    chip.classList.add('signed-in');
+    chip.title = `${user.email || 'Signed in'} — click to sign out`;
+  } else {
+    chip.textContent = 'Sign in';
+    chip.classList.remove('signed-in');
+    chip.title = 'Sign in with email';
+  }
+}
+
+function openAuthModal(mode){
+  authMode = mode || 'signin';
+  setAuthModeUi(authMode);
+  document.getElementById('auth-msg').textContent = '';
+  document.getElementById('auth-msg').className = 'auth-msg';
+  const backdrop = document.getElementById('auth-modal-backdrop');
+  const modal = document.getElementById('auth-modal');
+  backdrop.hidden = false;
+  modal.hidden = false;
+  backdrop.setAttribute('aria-hidden', 'false');
+  modal.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('auth-email')?.focus();
+}
+
+function closeAuthModal(){
+  const backdrop = document.getElementById('auth-modal-backdrop');
+  const modal = document.getElementById('auth-modal');
+  backdrop.hidden = true;
+  modal.hidden = true;
+  backdrop.setAttribute('aria-hidden', 'true');
+  modal.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+function setAuthModeUi(mode){
+  authMode = mode;
+  document.querySelectorAll('.auth-tab-btn').forEach(btn => {
+    const on = btn.dataset.authMode === mode;
+    btn.classList.toggle('active', on);
+    btn.setAttribute('aria-selected', on ? 'true' : 'false');
+  });
+  const title = document.getElementById('auth-modal-title');
+  const submit = document.getElementById('auth-submit');
+  const pw = document.getElementById('auth-password');
+  if (mode === 'signup'){
+    title.textContent = 'Create account';
+    submit.textContent = 'Sign up';
+    if (pw) pw.autocomplete = 'new-password';
+  } else {
+    title.textContent = 'Sign in';
+    submit.textContent = 'Sign in';
+    if (pw) pw.autocomplete = 'current-password';
+  }
+}
+
+function applyAuthSession(session){
+  authSession = session;
+  currentUserId = session?.user?.id || null;
+  updateAuthChrome();
+  updateGuestTabChrome();
+  if (session?.user && pendingTabAfterAuth){
+    const next = pendingTabAfterAuth;
+    pendingTabAfterAuth = null;
+    activateAppTab(next, { force: true });
+    return;
+  }
+  if (!session?.user){
+    pendingTabAfterAuth = null;
+    const active = document.querySelector('.panel.active');
+    if (active && isAuthRequiredTab(active.id)){
+      activateAppTab(PUBLIC_TAB_ID, { force: true });
+    }
+  }
+}
+
+async function initAuth(){
+  if (!supa) return;
+  const { data: { session } } = await supa.auth.getSession();
+  applyAuthSession(session);
+  supa.auth.onAuthStateChange((_event, session) => applyAuthSession(session));
+}
+
+async function handleAuthChipClick(){
+  if (authSession?.user){
+    const ok = window.confirm('Sign out of India Monitor?');
+    if (!ok) return;
+    await supa.auth.signOut();
+    currentUserId = null;
+    closeAuthModal();
+    return;
+  }
+  openAuthModal('signin');
+}
+
+async function handleAuthSubmit(e){
+  e.preventDefault();
+  if (!supa) return;
+  const msg = document.getElementById('auth-msg');
+  const email = document.getElementById('auth-email').value.trim();
+  const password = document.getElementById('auth-password').value;
+  const btn = document.getElementById('auth-submit');
+  msg.className = 'auth-msg';
+  msg.textContent = '';
+  btn.disabled = true;
+  try {
+    if (authMode === 'signup'){
+      const { data, error } = await supa.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: authRedirectUrl() },
+      });
+      if (error) throw error;
+      if (data.session){
+        msg.className = 'auth-msg ok';
+        msg.textContent = 'Account created. You are signed in.';
+        closeAuthModal();
+      } else {
+        msg.className = 'auth-msg ok';
+        msg.textContent = 'Check your email to confirm your account, then sign in.';
+      }
+    } else {
+      const { error } = await supa.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+      closeAuthModal();
+    }
+  } catch (err){
+    msg.className = 'auth-msg error';
+    msg.textContent = err.message || 'Authentication failed';
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function wireAuthUi(){
+  document.getElementById('auth-chip')?.addEventListener('click', handleAuthChipClick);
+  document.getElementById('auth-form')?.addEventListener('submit', handleAuthSubmit);
+  document.querySelectorAll('.auth-tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => setAuthModeUi(btn.dataset.authMode));
+  });
+  document.getElementById('auth-modal-close')?.addEventListener('click', e => {
+    e.stopPropagation();
+    closeAuthModal();
+  });
+  document.getElementById('auth-modal-backdrop')?.addEventListener('click', closeAuthModal);
+  const authModal = document.getElementById('auth-modal');
+  authModal?.querySelector('.auth-modal-panel')?.addEventListener('click', e => e.stopPropagation());
+  authModal?.addEventListener('click', e => {
+    if (e.target === authModal) closeAuthModal();
+  });
+}
+wireAuthUi();
 
 function showSetupBanner(msg) {
   const el = document.getElementById('setup-banner');
@@ -710,10 +976,12 @@ wireToggle.addEventListener('click', openWireDrawer);
 wireClose.addEventListener('click', closeWireDrawer);
 wireBackdrop.addEventListener('click', closeWireDrawer);
 
-function activateAppTab(tabId){
+function activateAppTab(tabId, options = {}){
+  const { force = false } = options;
+  if (!force && !requestTabAccess(tabId)) return false;
   const btn = document.querySelector(`.tab[data-tab="${tabId}"]`);
   const panel = document.getElementById(tabId);
-  if (!btn || !panel) return;
+  if (!btn || !panel) return false;
   document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
@@ -721,11 +989,12 @@ function activateAppTab(tabId){
   setWireSidebarVisible(tabId === 'news');
   if (tabId === 'hindu-news') loadLastHinduSearch();
   if (tabId === 'news-buzzwords') loadBuzzwords();
+  return true;
 }
 
 document.querySelectorAll('.tab').forEach(btn => {
   btn.addEventListener('click', () => {
-    activateAppTab(btn.dataset.tab);
+    if (!activateAppTab(btn.dataset.tab)) return;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 });
@@ -1443,6 +1712,7 @@ async function loadBuzzwords(force){
 }
 
 function getUserId(){
+  if (authSession?.user?.id) return authSession.user.id;
   if (!currentUserId){
     currentUserId = sessionStorage.getItem('hindu_user_id');
     if (!currentUserId){
@@ -1792,7 +2062,10 @@ hinduModalEl?.addEventListener('click', e => {
   if (e.target === hinduModalEl) closeHinduArticleModal();
 });
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && hinduModalEl && !hinduModalEl.hidden) closeHinduArticleModal();
+  if (e.key !== 'Escape') return;
+  const authModal = document.getElementById('auth-modal');
+  if (authModal && !authModal.hidden){ closeAuthModal(); return; }
+  if (hinduModalEl && !hinduModalEl.hidden) closeHinduArticleModal();
 });
 
 async function searchHinduNews(){
@@ -1859,6 +2132,12 @@ if (hinduSearchInput){
 // ----------------------- boot -----------------------
 async function boot(){
   if (!configured) return;
+  await initAuth();
+  updateGuestTabChrome();
+  const activePanel = document.querySelector('.panel.active');
+  if (activePanel && isAuthRequiredTab(activePanel.id) && !isAuthenticated()){
+    activateAppTab(PUBLIC_TAB_ID, { force: true });
+  }
   try {
     const { error } = await supa.from('stories').select('slug', {count:'exact', head:true});
     if (error) throw error;
@@ -1867,8 +2146,8 @@ async function boot(){
     showSetupBanner(`<strong style="color:var(--red)">Connected, but the query failed:</strong> ${esc(e.message||String(e))}. Did you run <code>supabase/schema.sql</code> and <code>supabase/seed.sql</code> in the Supabase SQL editor yet?`);
   }
   loadStories(); loadWire(); loadBudget(); loadBills(); loadMarkets(); loadRankings(); loadConstitution(); loadPipelineHealth();
-  if (document.getElementById('hindu-news')?.classList.contains('active')) loadLastHinduSearch();
-  if (document.getElementById('news-buzzwords')?.classList.contains('active')) loadBuzzwords();
+  if (isAuthenticated() && document.getElementById('hindu-news')?.classList.contains('active')) loadLastHinduSearch();
+  if (isAuthenticated() && document.getElementById('news-buzzwords')?.classList.contains('active')) loadBuzzwords();
 }
 boot();
 </script>

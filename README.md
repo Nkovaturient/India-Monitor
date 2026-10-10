@@ -57,6 +57,8 @@ flowchart TB
 
 Browser uses the **anon** key. Cron and Edge Functions use **service_role**.
 
+**Auth:** Email + password — header **Sign in** (glass pill). **News** is public; other tabs need a session. **Supabase → Authentication → URL configuration:** **Site URL** = `https://nkovaturient.github.io/India-Monitor/` (production). **Redirect URLs** (add each line): same production URL, plus local dev e.g. `http://localhost:5500/` and `http://127.0.0.1:5500/` (match the port you actually open `index.html` on — not `file://`). Email provider enabled.
+
 ---
 
 ## Modules
