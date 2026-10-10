@@ -1,12 +1,18 @@
+<div align="center">
+  
 # India Monitor
-
-**Tagline:** Facts over fog — the civic signal India can trust.
+*Facts over fog — the civic signal India can trust.*
 
 [![Live](https://img.shields.io/badge/live-GitHub%20Pages-E08D3C)](https://nkovaturient.github.io/India-Monitor/) [![Phase](https://img.shields.io/badge/phase-4%20%2B%20press%20search-1F6B4A)](https://nkovaturient.github.io/India-Monitor/) [![Stack](https://img.shields.io/badge/stack-static%20%2B%20Supabase-3DDC97)](#architecture)
 
-**One-liner:** An agentic civic-intelligence system that surfaces only what matters for education, governance, power, and people’s development — with official sources, timelines of how each story got here, and end-to-end insight so Indians speak from data, not rumour or folktale.
 
-**Live:** [nkovaturient.github.io/India-Monitor](https://nkovaturient.github.io/India-Monitor/)
+<img width="1733" height="907" alt="India Monitor_ Truth Source Dashboard" src="https://github.com/user-attachments/assets/afb42452-3080-4dee-b40e-e9ed873a08d3" />
+
+**An agentic civic-intelligence system that surfaces only what matters for education, governance, power, and people’s development — with official sources, timelines of how each story got here, and end-to-end insight so Indians speak from data, not rumour or folktale.** 
+
+**Live:** [India-Monitor](https://nkovaturient.github.io/India-Monitor/)
+
+</div>
 
 ---
 
