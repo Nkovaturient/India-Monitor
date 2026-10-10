@@ -878,11 +878,11 @@ async function handleAuthSubmit(e){
       if (error) throw error;
       if (data.session){
         msg.className = 'auth-msg ok';
-        msg.textContent = 'Account created. You are signed in.';
+        msg.textContent = 'You are in. Lets get witty!';
         closeAuthModal();
       } else {
         msg.className = 'auth-msg ok';
-        msg.textContent = 'Check your email to confirm your account, then sign in.';
+        msg.textContent = 'Check your email from Supabase to confirm your account, then Sign In again.';
       }
     } else {
       const { error } = await supa.auth.signInWithPassword({ email, password });
