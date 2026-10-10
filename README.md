@@ -113,6 +113,8 @@ sequenceDiagram
 | Insight | DeepSeek desk briefing: 5–8 anchored bullets, citizen impact, 700–900 char `listen_script`. Up to 3 peer snippets from the same result set. |
 | Validation | Reject `422` if bullets, impact, or script fail thresholds. Quota increments **only** on success. |
 | Listen | Disabled until `listen_script` ≥ 200 in DB. Audio uses that script only — never the Serp snippet. |
+| Audio UI | Sticky bottom player: play/pause, seek, speed (0.75×–2×). Survives modal close. |
+| Buzzwords | **News Buzzwords** tab: Serp + DeepSeek → `buzzwords-weekly`, 3-day cache; meta shows `week_note` + IST window. **Search press** → **Search & Listen** tab, query filled + Serp run. |
 
 ### Quotas (per browser `user_id`, 24h)
 
@@ -133,10 +135,11 @@ Cache hits and tab restore do not spend search quota.
 | `hindu_user_last_search` | One row per user: query, language, cards |
 | `hindu_article_summaries` | Bullets, `citizen_impact`, `listen_script` |
 | `hindu_audio_cache` | TTS URL per article + language |
+| `hindu_buzzwords_cache` | Weekly terms + `week_note`, per language, 72h TTL |
 
 Migrations (run in order, do not replay full `schema.sql` on a live DB):
 
-`migration_hindu_news.sql` → `migration_hindu_insight.sql` → `migration_hindu_last_search.sql`
+`migration_hindu_news.sql` → `migration_hindu_insight.sql` → `migration_hindu_last_search.sql` → `migration_hindu_buzzwords.sql`
 
 ### Edge functions
 
@@ -145,9 +148,10 @@ Migrations (run in order, do not replay full `schema.sql` on a live DB):
 | `serp-search` | `SERP_API_KEY` | SerpAPI `engine=google`, `google.co.in` |
 | `article-insight` | `DEEPSEEK_API_KEY` | `deepseek-flash` (override `DEEPSEEK_MODEL`) |
 | `generate-audio` | `ELEVENLABS_API_KEY` | EN Sarah / HI multilingual |
+| `buzzwords-weekly` | `SERP_API_KEY`, `DEEPSEEK_API_KEY` | Weekly buzz badges · 3-day cache |
 
 ```bash
-supabase functions deploy serp-search article-insight generate-audio
+supabase functions deploy serp-search article-insight generate-audio buzzwords-weekly
 ```
 
 Setup detail: [`supabase/functions/HINDU_NEWS_SETUP.md`](supabase/functions/HINDU_NEWS_SETUP.md). Build notes: [`supabase/functions/IMPLEMENTATION_SUMMARY.md`](supabase/functions/IMPLEMENTATION_SUMMARY.md).
@@ -158,7 +162,7 @@ Wire synthesis stays on **Anthropic** inside GitHub Actions. Press insight is **
 
 ## Setup
 
-1. Supabase: base schema + seeds, then Phase 3 SQL, `seed_bill_prs_slugs.sql`, then the three Hindu migrations above.
+1. Supabase: base schema + seeds, then Phase 3 SQL, `seed_bill_prs_slugs.sql`, then Hindu migrations (`migration_hindu_news.sql` through `migration_hindu_buzzwords.sql`).
 2. Public GitHub repo. Actions secrets: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`. Optional: `BUDGET_PDF_URL`.
 3. Edge secrets: `SERP_API_KEY`, `DEEPSEEK_API_KEY`, `ELEVENLABS_API_KEY`. Optional: `DEEPSEEK_MODEL=deepseek-v4-pro`.
 4. Pages hosts `index.html`. Frontend holds the **anon** URL + key only.

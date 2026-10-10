@@ -369,7 +369,43 @@
   .listen-btn:disabled{ opacity:0.5; cursor:not-allowed; }
   .listen-btn.playing{ background:rgba(46,158,110,0.2); border-color:var(--green); animation:pulse 2s infinite; }
   .quota-exceeded{ background:rgba(192,97,79,0.08); border:1px solid var(--red); border-radius:var(--radius); padding:14px 18px; font-size:13px; color:var(--ink); margin-top:16px; line-height:1.6; }
-  @media (max-width:700px){ .hindu-header{ flex-direction:column; } .search-box{ flex-direction:column; } .hindu-search-btn{ width:100%; } }
+  .buzzwords-block{ margin-bottom:22px; }
+  .buzzwords-head{ display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:10px; }
+  .buzzwords-head .section-label{ margin:0; }
+  .buzzwords-refresh{ font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-faint); }
+  .buzzwords-meta{ font-family:'JetBrains Mono',monospace; font-size:11px; line-height:1.5; color:var(--ink-dim); margin:0 0 12px; max-width:720px; }
+  .buzzwords-meta[hidden]{ display:none !important; }
+  .buzzwords-meta em{ color:var(--saffron); font-style:normal; }
+  .buzzword-badges{ display:flex; flex-wrap:wrap; gap:8px; }
+  .buzzword-badge{ font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.3px; padding:8px 14px; border-radius:24px; border:1px solid var(--border); background:rgba(18,21,27,0.55); color:var(--ink-dim); cursor:pointer; transition:all .2s; }
+  .buzzword-badge:hover{ border-color:rgba(224,141,60,0.35); color:var(--ink); }
+  .buzzword-badge.active{ border-color:var(--saffron); color:var(--saffron); background:rgba(224,141,60,0.1); }
+  .buzzword-badge.cat-economic{ border-color:rgba(93,130,190,0.35); }
+  .buzzword-badge.cat-political{ border-color:rgba(224,141,60,0.25); }
+  .buzzword-loading{ font-size:12px; color:var(--ink-faint); font-family:'JetBrains Mono',monospace; }
+  .buzzword-panel{ margin-top:14px; padding:16px 18px; border-radius:8px; border:1px solid rgba(255,255,255,0.08); background:rgba(18,21,27,0.55); animation:fade .25s ease; }
+  .buzzword-panel[hidden]{ display:none !important; }
+  .buzzword-panel h4{ font-family:'Newsreader',serif; font-size:20px; margin:0 0 6px; color:var(--ink); }
+  .buzzword-panel .buzz-cat{ font-family:'JetBrains Mono',monospace; font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--ink-faint); margin-bottom:10px; }
+  .buzzword-panel p{ margin:0 0 12px; font-size:14px; line-height:1.55; color:var(--ink-dim); }
+  .buzzword-panel ul{ margin:0 0 14px; padding-left:18px; }
+  .buzzword-panel li{ margin-bottom:6px; font-size:13.5px; color:var(--ink); }
+  .buzzword-panel-actions{ display:flex; flex-wrap:wrap; gap:8px; margin-top:4px; }
+  .audio-player-bar{ position:fixed; left:0; right:0; bottom:0; z-index:90; padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px)); transform:translateY(100%); transition:transform .28s ease; pointer-events:none; }
+  .audio-player-bar.visible{ transform:translateY(0); pointer-events:auto; }
+  .audio-player-inner{ max-width:960px; margin:0 auto; display:flex; align-items:center; gap:14px; padding:12px 16px; border-radius:12px; border:1px solid rgba(255,255,255,0.1); box-shadow:0 -8px 32px rgba(0,0,0,0.45); }
+  .audio-play-btn{ width:44px; height:44px; border-radius:50%; border:1px solid var(--green-dim); background:rgba(46,158,110,0.15); color:var(--green); font-size:16px; cursor:pointer; flex-shrink:0; display:flex; align-items:center; justify-content:center; }
+  .audio-play-btn:hover{ border-color:var(--green); background:rgba(46,158,110,0.22); }
+  .audio-player-meta{ flex:1; min-width:0; }
+  .audio-player-title{ font-family:'Newsreader',serif; font-size:14px; font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:6px; }
+  .audio-seek{ width:100%; height:4px; accent-color:var(--saffron); cursor:pointer; }
+  .audio-time{ display:flex; justify-content:space-between; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--ink-faint); margin-top:4px; }
+  .audio-speed-btn{ font-family:'JetBrains Mono',monospace; font-size:11px; padding:8px 12px; border-radius:20px; border:1px solid var(--border); background:rgba(18,21,27,0.8); color:var(--ink-dim); cursor:pointer; flex-shrink:0; min-width:48px; }
+  .audio-speed-btn:hover{ border-color:var(--saffron-dim); color:var(--saffron); }
+  .audio-close-btn{ background:none; border:none; color:var(--ink-faint); font-size:22px; cursor:pointer; line-height:1; padding:4px 8px; flex-shrink:0; }
+  .audio-close-btn:hover{ color:var(--ink); }
+  body.audio-player-open{ padding-bottom:96px; }
+  @media (max-width:700px){ .hindu-header{ flex-direction:column; } .search-box{ flex-direction:column; } .hindu-search-btn{ width:100%; } .audio-player-inner{ gap:10px; padding:10px 12px; } .audio-player-title{ font-size:13px; } }
 </style>
 </head>
 <body>
@@ -395,7 +431,8 @@
   <button class="tab" data-tab="markets">Markets</button>
   <button class="tab" data-tab="rankings">Rankings</button>
   <button class="tab" data-tab="constitution">Constitution</button>
-  <button class="tab" data-tab="hindu-news">Hindu News</button>
+  <button class="tab" data-tab="news-buzzwords">Buzzwords</button>
+  <button class="tab" data-tab="hindu-news">Search &amp; Listen</button>
 </nav>
 </div>
 
@@ -500,6 +537,23 @@
     <div id="constitution-list"></div>
   </section>
 
+  <section id="news-buzzwords" class="panel">
+    <div class="hindu-header">
+      <div>
+        <h2 class="page-title" id="buzzwords-page-title">News Buzzwords</h2>
+        <p class="lede" style="font-size:16px;" id="buzzwords-page-lede">What India is arguing about — tap a term for a grounded synopsis, then <em>Search press</em>.</p>
+      </div>
+    </div>
+    <div class="buzzwords-block" id="buzzwords-block">
+      <div class="buzzwords-head">
+        <p class="section-label" id="buzzwords-label">Buzz in Indian news this week</p>
+      </div>
+      <p class="buzzwords-meta" id="buzzwords-meta" hidden></p>
+      <div id="buzzword-badges" class="buzzword-badges" role="tablist" aria-label="Weekly news buzzwords"></div>
+      <div id="buzzword-panel" class="buzzword-panel glass" hidden></div>
+    </div>
+  </section>
+
   <section id="hindu-news" class="panel">
     <div class="hindu-header">
       <div>
@@ -507,7 +561,7 @@
         <h2 class="page-title">Search &amp; Listen</h2>
         <p class="lede" style="font-size:16px;">Search <em>The Hindu</em> and <em>Indian Express</em> — grounded desk briefings with citizen-impact analysis. No time to read? Just listen to the generated insights on-the-go.</p>
       </div>
-      <button class="lang-toggle" id="lang-toggle" type="button" aria-label="Switch language">
+      <button class="lang-toggle" type="button" aria-label="Switch language">
         <span class="lang-option active" data-lang="en">ENG</span>
         <span class="lang-sep">|</span>
         <span class="lang-option" data-lang="hi">हिन्दी</span>
@@ -538,6 +592,19 @@
     <b>Live feed.</b> Refreshed twice daily from official sources only — Press Information Bureau and market data.
   </div>
 </main>
+</div>
+
+<div id="audio-player-bar" class="audio-player-bar" hidden aria-hidden="true">
+  <div class="audio-player-inner glass">
+    <button type="button" id="audio-play-toggle" class="audio-play-btn" aria-label="Play or pause">▶</button>
+    <div class="audio-player-meta">
+      <div id="audio-player-title" class="audio-player-title"></div>
+      <input type="range" id="audio-seek" class="audio-seek" min="0" max="1000" value="0" step="1" aria-label="Playback position">
+      <div class="audio-time"><span id="audio-time-cur">0:00</span><span id="audio-time-dur">0:00</span></div>
+    </div>
+    <button type="button" id="audio-speed" class="audio-speed-btn" aria-label="Playback speed">1×</button>
+    <button type="button" id="audio-close" class="audio-close-btn" aria-label="Close player">&times;</button>
+  </div>
 </div>
 
 <div id="hindu-modal-backdrop" class="hindu-modal-backdrop" hidden aria-hidden="true"></div>
@@ -623,15 +690,23 @@ wireToggle.addEventListener('click', openWireDrawer);
 wireClose.addEventListener('click', closeWireDrawer);
 wireBackdrop.addEventListener('click', closeWireDrawer);
 
-document.querySelectorAll('.tab').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById(btn.dataset.tab).classList.add('active');
-    setWireSidebarVisible(btn.dataset.tab === 'news');
-    if (btn.dataset.tab === 'hindu-news') loadLastHinduSearch();
-    window.scrollTo({top:0, behavior:'smooth'});
+function activateAppTab(tabId){
+  const btn = document.querySelector(`.tab[data-tab="${tabId}"]`);
+  const panel = document.getElementById(tabId);
+  if (!btn || !panel) return;
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  panel.classList.add('active');
+  setWireSidebarVisible(tabId === 'news');
+  if (tabId === 'hindu-news') loadLastHinduSearch();
+  if (tabId === 'news-buzzwords') loadBuzzwords();
+}
+
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', () => {
+    activateAppTab(btn.dataset.tab);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 });
 setWireSidebarVisible(true);
@@ -1020,10 +1095,140 @@ let currentUserId = null;
 let hinduSearchResults = [];
 let hinduModalArticle = null;
 let hinduModalInsight = null;
-let currentAudio = null;
 let hinduModalListenBtn = null;
 let hinduLastSearchLoaded = false;
+let buzzwordTerms = [];
+let buzzwordActiveId = null;
+let buzzwordsLoadedLang = null;
 const HINDU_LISTEN_MIN = 200;
+const AUDIO_SPEEDS = [0.75, 1, 1.25, 1.5, 1.75, 2];
+
+const audioPlayer = {
+  audio: null,
+  sourceKey: '',
+  title: '',
+  speedIdx: 1,
+  tickBound: null,
+};
+
+function formatAudioTime(sec){
+  if (!Number.isFinite(sec) || sec < 0) return '0:00';
+  const m = Math.floor(sec / 60);
+  const s = Math.floor(sec % 60);
+  return `${m}:${String(s).padStart(2, '0')}`;
+}
+
+function syncListenBtnPlaying(){
+  if (!hinduModalListenBtn) return;
+  const playing = audioPlayer.audio && !audioPlayer.audio.paused;
+  hinduModalListenBtn.classList.toggle('playing', playing);
+  hinduModalListenBtn.dataset.playing = playing ? '1' : '0';
+}
+
+function updateAudioPlayerUi(){
+  const bar = document.getElementById('audio-player-bar');
+  const playBtn = document.getElementById('audio-play-toggle');
+  const titleEl = document.getElementById('audio-player-title');
+  const seek = document.getElementById('audio-seek');
+  const cur = document.getElementById('audio-time-cur');
+  const dur = document.getElementById('audio-time-dur');
+  const speedBtn = document.getElementById('audio-speed');
+  if (!bar || !audioPlayer.audio) return;
+  const a = audioPlayer.audio;
+  titleEl.textContent = audioPlayer.title || hinduT('listen');
+  playBtn.textContent = a.paused ? '▶' : '❚❚';
+  const pct = a.duration ? Math.min(1000, Math.round((a.currentTime / a.duration) * 1000)) : 0;
+  if (seek && !seek.dataset.scrubbing) seek.value = String(pct);
+  cur.textContent = formatAudioTime(a.currentTime);
+  dur.textContent = formatAudioTime(a.duration);
+  speedBtn.textContent = `${AUDIO_SPEEDS[audioPlayer.speedIdx]}×`;
+}
+
+function showAudioPlayerBar(){
+  const bar = document.getElementById('audio-player-bar');
+  if (!bar) return;
+  bar.hidden = false;
+  bar.setAttribute('aria-hidden', 'false');
+  bar.classList.add('visible');
+  document.body.classList.add('audio-player-open');
+}
+
+function hideAudioPlayerBar(){
+  const bar = document.getElementById('audio-player-bar');
+  if (!bar) return;
+  bar.classList.remove('visible');
+  bar.hidden = true;
+  bar.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('audio-player-open');
+}
+
+function stopAudioPlayer(){
+  if (audioPlayer.tickBound && audioPlayer.audio){
+    audioPlayer.audio.removeEventListener('timeupdate', audioPlayer.tickBound);
+  }
+  if (audioPlayer.audio){
+    audioPlayer.audio.pause();
+    audioPlayer.audio.src = '';
+  }
+  audioPlayer.audio = null;
+  audioPlayer.sourceKey = '';
+  hideAudioPlayerBar();
+  syncListenBtnPlaying();
+}
+
+function toggleAudioPlay(){
+  if (!audioPlayer.audio) return;
+  if (audioPlayer.audio.paused) audioPlayer.audio.play();
+  else audioPlayer.audio.pause();
+  updateAudioPlayerUi();
+  syncListenBtnPlaying();
+}
+
+function cycleAudioSpeed(){
+  if (!audioPlayer.audio) return;
+  audioPlayer.speedIdx = (audioPlayer.speedIdx + 1) % AUDIO_SPEEDS.length;
+  audioPlayer.audio.playbackRate = AUDIO_SPEEDS[audioPlayer.speedIdx];
+  updateAudioPlayerUi();
+}
+
+function attachAudioSource(url, title, sourceKey){
+  stopAudioPlayer();
+  const audio = new Audio(url);
+  audio.playbackRate = AUDIO_SPEEDS[audioPlayer.speedIdx];
+  audioPlayer.audio = audio;
+  audioPlayer.title = title;
+  audioPlayer.sourceKey = sourceKey;
+  audioPlayer.tickBound = () => updateAudioPlayerUi();
+  audio.addEventListener('timeupdate', audioPlayer.tickBound);
+  audio.addEventListener('loadedmetadata', updateAudioPlayerUi);
+  audio.addEventListener('ended', () => {
+    syncListenBtnPlaying();
+    updateAudioPlayerUi();
+  });
+  audio.addEventListener('play', () => { updateAudioPlayerUi(); syncListenBtnPlaying(); });
+  audio.addEventListener('pause', () => { updateAudioPlayerUi(); syncListenBtnPlaying(); });
+  showAudioPlayerBar();
+  updateAudioPlayerUi();
+  return audio;
+}
+
+function initAudioPlayerBar(){
+  document.getElementById('audio-play-toggle')?.addEventListener('click', toggleAudioPlay);
+  document.getElementById('audio-speed')?.addEventListener('click', cycleAudioSpeed);
+  document.getElementById('audio-close')?.addEventListener('click', stopAudioPlayer);
+  const seek = document.getElementById('audio-seek');
+  if (seek){
+    seek.addEventListener('input', () => {
+      seek.dataset.scrubbing = '1';
+      if (audioPlayer.audio?.duration){
+        audioPlayer.audio.currentTime = (Number(seek.value) / 1000) * audioPlayer.audio.duration;
+        updateAudioPlayerUi();
+      }
+    });
+    seek.addEventListener('change', () => { delete seek.dataset.scrubbing; });
+  }
+}
+initAudioPlayerBar();
 
 const HINDU_I18N = {
   en: {
@@ -1043,6 +1248,15 @@ const HINDU_I18N = {
     searchPlaceholder: 'Search The Hindu & Indian Express…',
     srcHindu: 'The Hindu',
     srcIe: 'Indian Express',
+    buzzwordsLabel: 'Buzz in Indian news this week',
+    buzzPageSublabel: 'This week in the headlines',
+    buzzPageTitle: 'News Buzzwords',
+    buzzPageLede: 'What India is arguing about — tap a term for a grounded synopsis, then Search press to pull Hindu & Express coverage.',
+    buzzSearchPress: 'Search press',
+    buzzLoading: 'Loading weekly buzz…',
+    buzzFail: 'Buzzwords unavailable — try again later.',
+    buzzRefreshNote: 'Refreshes every 3 days',
+    buzzSpan: 'Window',
   },
   hi: {
     openHint: 'विश्लेषण के लिए टैप करें',
@@ -1061,10 +1275,152 @@ const HINDU_I18N = {
     searchPlaceholder: 'द हिंदू और इंडियन एक्सप्रेस खोजें…',
     srcHindu: 'द हिंदू',
     srcIe: 'इंडियन एक्सप्रेस',
+    buzzwordsLabel: 'इस सप्ताह भारतीय समाचार — बज़वर्ड',
+    buzzPageSublabel: 'इस सप्ताह की सुर्खियाँ',
+    buzzPageTitle: 'समाचार बज़वर्ड',
+    buzzPageLede: 'भारत में चर्चा के शब्द — सारांश के लिए टैप करें, फिर प्रेस खोज से द हिंदू और इंडियन एक्सप्रेस कवरेज लाएँ।',
+    buzzSearchPress: 'प्रेस खोजें',
+    buzzLoading: 'साप्ताहिक बज़वर्ड लोड…',
+    buzzFail: 'बज़वर्ड उपलब्ध नहीं — बाद में पुनः प्रयास करें।',
+    buzzRefreshNote: 'हर 3 दिन में नवीनीकरण',
+    buzzSpan: 'अवधि',
   },
 };
 
 function hinduT(key){ return (HINDU_I18N[currentLanguage] || HINDU_I18N.en)[key] || key; }
+
+function syncLangToggleUi(){
+  document.querySelectorAll('.lang-toggle .lang-option').forEach(opt => {
+    opt.classList.toggle('active', opt.dataset.lang === currentLanguage);
+  });
+}
+
+function updateBuzzwordsChrome(){
+  const label = document.getElementById('buzzwords-label');
+  if (label) label.textContent = hinduT('buzzwordsLabel');
+  const sub = document.getElementById('buzzwords-page-sublabel');
+  const title = document.getElementById('buzzwords-page-title');
+  const lede = document.getElementById('buzzwords-page-lede');
+  if (sub) sub.textContent = hinduT('buzzPageSublabel');
+  if (title) title.textContent = hinduT('buzzPageTitle');
+  if (lede) lede.textContent = hinduT('buzzPageLede');
+}
+
+function goToPressSearch(query){
+  const q = (query || '').trim();
+  activateAppTab('hindu-news');
+  const input = document.getElementById('hindu-search-input');
+  if (input && q) input.value = q;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (q) searchHinduNews();
+  else input?.focus();
+}
+
+function formatBuzzDateSpan(fetchedAt, expiresAt){
+  const locale = currentLanguage === 'hi' ? 'hi-IN' : 'en-IN';
+  const tz = { timeZone: 'Asia/Kolkata' };
+  const start = new Date(fetchedAt);
+  const end = new Date(expiresAt);
+  const sy = start.toLocaleDateString(locale, { year: 'numeric', timeZone: 'Asia/Kolkata' });
+  const ey = end.toLocaleDateString(locale, { year: 'numeric', timeZone: 'Asia/Kolkata' });
+  const startStr = start.toLocaleDateString(locale, { day: 'numeric', month: 'short', ...tz });
+  const endStr = end.toLocaleDateString(locale, { day: 'numeric', month: 'short', ...tz });
+  const yearBit = sy === ey ? sy : `${sy}–${ey}`;
+  return `${startStr} – ${endStr} ${yearBit}`;
+}
+
+function renderBuzzwordsMeta(data){
+  const meta = document.getElementById('buzzwords-meta');
+  if (!meta) return;
+  if (!data?.fetched_at || !data?.refreshes_at){
+    meta.hidden = true;
+    meta.textContent = '';
+    return;
+  }
+  const note = (data.week_note || '').trim();
+  const span = formatBuzzDateSpan(data.fetched_at, data.refreshes_at);
+  const windowLine = `${hinduT('buzzSpan')}: ${span} IST · ${hinduT('buzzRefreshNote')}`;
+  if (note){
+    meta.innerHTML = `<em>${esc(note)}</em> · ${esc(windowLine)}`;
+  } else {
+    meta.textContent = windowLine;
+  }
+  meta.hidden = false;
+}
+
+function renderBuzzwordPanel(term){
+  const panel = document.getElementById('buzzword-panel');
+  if (!panel || !term) return;
+  const bullets = (term.bullets || []).map(b => `<li>${esc(b)}</li>`).join('');
+  panel.innerHTML = `
+    <h4>${esc(term.label)}</h4>
+    <div class="buzz-cat">${esc(term.category || 'news')}</div>
+    <p>${esc(term.synopsis)}</p>
+    ${bullets ? `<ul>${bullets}</ul>` : ''}
+    <div class="buzzword-panel-actions">
+      <button type="button" class="hindu-btn-primary" id="buzzword-search-btn">${esc(hinduT('buzzSearchPress'))}</button>
+    </div>`;
+  panel.hidden = false;
+  document.getElementById('buzzword-search-btn')?.addEventListener('click', () => {
+    goToPressSearch(term.search_query || term.label);
+  });
+}
+
+function renderBuzzwordBadges(){
+  const wrap = document.getElementById('buzzword-badges');
+  if (!wrap) return;
+  if (!buzzwordTerms.length){
+    wrap.innerHTML = `<span class="buzzword-loading">${esc(hinduT('buzzFail'))}</span>`;
+    return;
+  }
+  wrap.innerHTML = buzzwordTerms.map(t => {
+    const cat = (t.category || '').toLowerCase();
+    const catClass = cat.includes('polit') ? 'cat-political' : (cat.includes('econ') || cat.includes('corp') ? 'cat-economic' : '');
+    const active = t.id === buzzwordActiveId ? ' active' : '';
+    return `<button type="button" class="buzzword-badge ${catClass}${active}" data-buzz-id="${esc(t.id)}" role="tab" aria-selected="${t.id === buzzwordActiveId}">${esc(t.label)}</button>`;
+  }).join('');
+  wrap.querySelectorAll('.buzzword-badge').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.buzzId;
+      buzzwordActiveId = id;
+      const term = buzzwordTerms.find(x => x.id === id);
+      renderBuzzwordBadges();
+      renderBuzzwordPanel(term);
+    });
+  });
+  if (buzzwordActiveId){
+    const term = buzzwordTerms.find(x => x.id === buzzwordActiveId);
+    if (term) renderBuzzwordPanel(term);
+  }
+}
+
+async function loadBuzzwords(force){
+  if (!force && buzzwordsLoadedLang === currentLanguage && buzzwordTerms.length) return;
+  updateBuzzwordsChrome();
+  const wrap = document.getElementById('buzzword-badges');
+  const meta = document.getElementById('buzzwords-meta');
+  if (meta){ meta.hidden = true; meta.textContent = ''; }
+  if (wrap) wrap.innerHTML = `<span class="buzzword-loading">${esc(hinduT('buzzLoading'))}</span>`;
+  try {
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/buzzwords-weekly`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${SUPABASE_ANON_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ language: currentLanguage }),
+    });
+    const data = await response.json();
+    if (data.error) throw new Error(data.error);
+    buzzwordTerms = data.terms || [];
+    buzzwordsLoadedLang = currentLanguage;
+    if (!buzzwordActiveId && buzzwordTerms[0]) buzzwordActiveId = buzzwordTerms[0].id;
+    renderBuzzwordBadges();
+    renderBuzzwordsMeta(data);
+  } catch (e){
+    console.error(e);
+    buzzwordTerms = [];
+    renderBuzzwordsMeta(null);
+    if (wrap) wrap.innerHTML = `<span class="buzzword-loading">${esc(hinduT('buzzFail'))}</span>`;
+  }
+}
 
 function getUserId(){
   if (!currentUserId){
@@ -1283,11 +1639,6 @@ function closeHinduArticleModal(){
   backdrop.hidden = true;
   modal.setAttribute('aria-hidden', 'true');
   document.body.style.overflow = '';
-  if (currentAudio){
-    currentAudio.pause();
-    currentAudio = null;
-  }
-  hinduModalListenBtn?.classList.remove('playing');
 }
 
 async function generateHinduArticleInsight(){
@@ -1345,14 +1696,10 @@ async function playHinduModalAudio(){
     alert(hinduT('listenLocked'));
     return;
   }
-  if (currentAudio){
-    currentAudio.pause();
-    hinduModalListenBtn.classList.remove('playing');
-    if (hinduModalListenBtn.dataset.playing === '1'){
-      hinduModalListenBtn.dataset.playing = '0';
-      currentAudio = null;
-      return;
-    }
+  const sourceKey = `${hinduModalArticle.url}|${currentLanguage}`;
+  if (audioPlayer.audio && audioPlayer.sourceKey === sourceKey){
+    toggleAudioPlay();
+    return;
   }
   const label = hinduModalListenBtn.querySelector('span:last-child');
   const prev = label.textContent;
@@ -1381,15 +1728,9 @@ async function playHinduModalAudio(){
       return;
     }
     updateHinduQuotaDisplay(data.quota);
-    currentAudio = new Audio(data.audioUrl);
-    hinduModalListenBtn.classList.add('playing');
-    hinduModalListenBtn.dataset.playing = '1';
-    currentAudio.addEventListener('ended', () => {
-      hinduModalListenBtn.classList.remove('playing');
-      hinduModalListenBtn.dataset.playing = '0';
-      currentAudio = null;
-    });
-    await currentAudio.play();
+    const audio = attachAudioSource(data.audioUrl, hinduModalArticle.title, sourceKey);
+    await audio.play();
+    syncListenBtnPlaying();
   } catch (e){
     alert(e.message || 'Audio failed');
   } finally {
@@ -1398,17 +1739,18 @@ async function playHinduModalAudio(){
   }
 }
 
-const langToggle = document.getElementById('lang-toggle');
-if (langToggle){
+document.querySelectorAll('.lang-toggle').forEach(langToggle => {
   langToggle.addEventListener('click', async (e) => {
     if (!e.target.classList.contains('lang-option')) return;
-    document.querySelectorAll('.lang-option').forEach(opt => opt.classList.remove('active'));
-    e.target.classList.add('active');
     currentLanguage = e.target.dataset.lang;
+    syncLangToggleUi();
     const input = document.getElementById('hindu-search-input');
     if (input){
       input.placeholder = hinduT('searchPlaceholder');
     }
+    updateBuzzwordsChrome();
+    buzzwordActiveId = null;
+    loadBuzzwords(true);
     if (hinduModalArticle && !document.getElementById('hindu-modal').hidden){
       hinduModalInsight = await loadCachedHinduInsight(hinduModalArticle);
       document.getElementById('hindu-modal-label').textContent = currentLanguage === 'hi' ? 'लेख विश्लेषण' : 'Article insight';
@@ -1416,7 +1758,7 @@ if (langToggle){
       renderHinduModalActions();
     }
   });
-}
+});
 
 document.getElementById('hindu-modal-close')?.addEventListener('click', closeHinduArticleModal);
 document.getElementById('hindu-modal-backdrop')?.addEventListener('click', closeHinduArticleModal);
@@ -1485,6 +1827,7 @@ async function boot(){
   }
   loadStories(); loadWire(); loadBudget(); loadBills(); loadMarkets(); loadRankings(); loadConstitution(); loadPipelineHealth();
   if (document.getElementById('hindu-news')?.classList.contains('active')) loadLastHinduSearch();
+  if (document.getElementById('news-buzzwords')?.classList.contains('active')) loadBuzzwords();
 }
 boot();
 </script>
