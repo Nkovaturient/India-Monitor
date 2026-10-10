@@ -2,131 +2,217 @@
 
 **Tagline:** Facts over fog — the civic signal India can trust.
 
+[![Live](https://img.shields.io/badge/live-GitHub%20Pages-E08D3C)](https://nkovaturient.github.io/India-Monitor/) [![Phase](https://img.shields.io/badge/phase-4%20%2B%20press%20search-1F6B4A)](https://nkovaturient.github.io/India-Monitor/) [![Stack](https://img.shields.io/badge/stack-static%20%2B%20Supabase-3DDC97)](#architecture)
+
 **One-liner:** An agentic civic-intelligence system that surfaces only what matters for education, governance, power, and people’s development — with official sources, timelines of how each story got here, and end-to-end insight so Indians speak from data, not rumour or folktale.
 
-**Current phase: 4**
-
-```
-GitHub Actions
-        │
-        ├─ refresh.yml (2×/day)
-        │     ingest.py       → PIB + 4 newspapers + markets → raw_items, market_snapshots, pipeline_health
-        │     track_bills.py  → PRS Bill Track → bills, bill_status_history
-        │     synthesize.py   → Claude (grounded in fetched text only) → stories, story_stations
-        ├─ rankings-refresh.yml (monthly, 1st)
-        │     rankings_refresh.py → rankings_candidates (never auto-writes rankings)
-        └─ budget-refresh.yml (2 Feb reminder / manual)
-              budget_parse.py → budget_facts, budget_sectors (no-op unless BUDGET_PDF_URL is set)
-
-Supabase (Postgres + REST + RLS)
-        │  anon key, read-only in the browser
-        ▼
-Static site (index.html) → queries Supabase on load
-```
+**Live:** [nkovaturient.github.io/India-Monitor](https://nkovaturient.github.io/India-Monitor/)
 
 ---
 
-## Phases
+## Architecture
 
-### Phase 1 — Foundation
-Schema, seed data, static UI. Manual / curated content for stories, bills, budget, rankings, and constitution cards.
+```mermaid
+flowchart TB
+  subgraph cron [GitHub Actions]
+    R[refresh.yml · 2×/day]
+    K[rankings-refresh.yml · monthly]
+    B[budget-refresh.yml · yearly]
+  end
 
-### Phase 2 — Live feed
-Twice-daily automation: PIB RSS + Yahoo Finance markets → Supabase; LLM synthesis into grounded story stations. Site reads live from the DB (no rebuild step).
+  subgraph jobs [scripts]
+    I[ingest.py · PIB + 4 papers + markets]
+    T[track_bills.py · PRS]
+    S[synthesize.py · Claude]
+    RR[rankings_refresh.py]
+    BP[budget_parse.py]
+  end
 
-### Phase 3 — Live expansion
-What shipped on top of Phase 2:
+  DB[(Supabase · anon read · service_role write)]
+  UI[index.html]
 
-| Change | Detail |
-|---|---|
-| Newspaper feeds | TOI, The Hindu, HT, Indian Express RSS in `scripts/ingest.py`, each isolated (one failure does not stop the others) |
-| Fetch hardening | Browser-like headers + retries via `requests`; parse with `feedparser` on raw bytes so HTTP failures are visible |
-| Relevance allowlist | Education / governance / energy / budget keywords — drops sports, crime blotter, celebrity noise before DB or LLM |
-| `pipeline_health` | Per-source ok/fail, counts, error text (`migration_phase3.sql`) |
-| Bills provenance | `detail_url`, `category`, `prs_slug`, `last_checked_at` + append-only `bill_status_history` |
-| Rankings expansion | Categories + publishers; 9 Phase-2 rows backfilled + 9 new indexes (`seed_phase3_rankings.sql`) |
-| Rankings staging | `rankings_candidates` — proposed updates, not public-read; human promote only |
-| Wire topic tags | `raw_items.topic` on ingest + UI tabs (High signal, Governance, Education, Health, Economy, Energy) |
-| Rankings UI filters | Category tabs + glass grid cards (Development, Climate, Economy, etc.) |
+  R --> I & T & S
+  K --> RR
+  B --> BP
+  I & T & S & RR & BP --> DB
+  UI -->|REST| DB
 
-✅ Applied Phase 3 DB changes in order: `supabase/migration_phase3.sql`, then `supabase/seed_phase3_rankings.sql`, then `supabase/migration_phase3_topic.sql`.
+  subgraph press [Hindu News tab · on demand]
+    SS[serp-search]
+    AI[article-insight · DeepSeek]
+    GA[generate-audio · ElevenLabs]
+  end
 
-### Phase 4 — Current
-No new tables. Reuses Phase 3 schema.
+  UI --> SS & AI & GA
+  SS & AI & GA --> DB
+  SS --> Serp[SerpAPI · Hindu OR Indian Express]
+```
 
-| Change | Detail |
-|---|---|
-| Shared helpers | `scripts/common.py` — HTTP + Supabase + `pipeline_health` writes used by all jobs |
-| Health strip | Latest per-source ok/fail on the site chrome (`loadPipelineHealth`) |
-| Bill tracker | `track_bills.py` scrapes PRS HTML; appends `bill_status_history` only on change; backfill slugs via `supabase/seed_bill_prs_slugs.sql` |
-| Rankings refresh | Monthly calendar job; real fetchers for passport / happiness / press / CPI / GHI / GII / AQI; others get a **stub candidate** (no invented rank). Promote with `python scripts/promote_ranking.py --candidate-id N` |
-| Budget PDF | `budget_parse.py` upserts matched `budget_facts` / `budget_sectors` slugs; skips entirely if `BUDGET_PDF_URL` is unset |
-
-Done and Ran `supabase/seed_bill_prs_slugs.sql` once in the SQL editor so existing bills have `prs_slug` values.
-
----
-
-## Status by module
-
-| Module | Status | Notes |
+| Path | When | Writes |
 |---|---|---|
-| Wire feed (PIB + newspapers) | **Automated**, 2×/day | Phase 3 |
-| Market snapshot | **Automated**, 2×/day | Yahoo Finance |
-| Story timelines | **Automated**, 2×/day | Grounded LLM; see § safeguards |
-| Auto-tracked new stories | **Automated**, cautious | Only substantive bill/scheme/policy-style items |
-| Pipeline health | **Automated + UI** | Strip under the header; written by ingest / bills / rankings / budget |
-| Bill tracker | **Automated**, 2×/day | PRS scrape; history append-only; Digital Sansad still a manual cross-check |
-| Budget figures | **Seeded + yearly parser** | Set `BUDGET_PDF_URL` (e.g. `https://www.indiabudget.gov.in/doc/eb/vol1.pdf`) and run the budget workflow |
-| Rankings | **Candidates automated**, public ranks human-promoted | 18 indexes; calendar windows in `scripts/rankings_registry.py` |
-| Constitution cards | **Curated**, static by design | Never LLM-authored |
-| Newspaper → UI quotes | **Paraphrase / cite carefully** | Prefer links; short quotes only if shown |
+| Wire, markets, stories, bills | 06:00 & 18:00 IST | `raw_items`, `stories`, `bills`, `market_snapshots`, `pipeline_health` |
+| Rankings | 1st of month | `rankings_candidates` only — promote by hand |
+| Budget | Manual / 2 Feb reminder | `budget_facts`, `budget_sectors` if `BUDGET_PDF_URL` is set |
+| Press search | User click | Cache, quota, last search, insight, audio |
+
+Browser uses the **anon** key. Cron and Edge Functions use **service_role**.
 
 ---
 
-## Safeguards (auto-publish)
+## Modules
 
-No human gate before news/story writes. Structural controls instead:
+| Module | Status | Source |
+|---|---|---|
+| Wire feed | Automated · 2×/day | PIB + TOI, Hindu, HT, Indian Express |
+| Markets | Automated · 2×/day | Yahoo Finance |
+| Story stations | Automated · grounded | Claude sees that item’s text only |
+| Bills | Automated · 2×/day | PRS HTML; history append-only |
+| Budget | Seeded + PDF parser | No-op until `BUDGET_PDF_URL` |
+| Rankings | Candidates auto · ranks human | 18 indexes · `promote_ranking.py` |
+| Constitution | Curated | Never LLM-authored |
+| **Press search** | On demand · quotas | Hindu + Indian Express via Serp |
 
-- **Grounding** — `synthesize.py` only sees that item’s title/description; unsure → `skip`
-- **Append-only** — `story_stations` (and `bill_status_history`) are never rewritten by the pipeline
-- **Cite the source row** — stations carry `source_item_id` back to the wire item
-- **Label auto-tracked stories** — distinct from curated flagships
-- **Rankings differ** — numeric rank claims go to `rankings_candidates` first, not straight to `rankings`
+### Auto-publish rules
 
-Optional later: write stations to a staging table and approve via PR / Slack.
+- Synthesis skips when the source is thin (`skip`).
+- `story_stations` and `bill_status_history` are append-only.
+- Stations cite `source_item_id`.
+- Rank numbers never land on `rankings` without a promote step.
 
 ---
 
-## Cost (this scale)
+## Press search
 
-- **Supabase free tier** — well within limits; cron writes keep the project active
-- **GitHub Actions** — free on public repos for this short 2×/day job
-- **Anthropic** — main cost; skipped entirely when ingest finds nothing relevant
+Tab label stays **Hindu News**. Search covers **The Hindu** and **Indian Express** in one Serp call.
+
+```mermaid
+sequenceDiagram
+  participant UI as index.html
+  participant DB as Supabase
+  participant Serp as serp-search
+  participant Insight as article-insight
+  participant Audio as generate-audio
+
+  UI->>DB: hindu_user_last_search
+  DB-->>UI: last query + cards
+  UI->>Serp: POST search
+  Serp-->>UI: articles
+  Serp->>DB: cache + last search
+  UI->>Insight: Generate insight
+  Insight->>DB: bullets + citizen_impact + listen_script
+  UI->>Audio: Listen
+  Audio->>DB: require listen_script ≥ 200
+```
+
+| Step | Behaviour |
+|---|---|
+| Restore | Last query + cards from `hindu_user_last_search`. No Serp, no search quota. |
+| Search | `(site:thehindu.com OR site:indianexpress.com) {query}` · badge Hindu / IE · cap 12 · deduped URLs |
+| Cache | 6h on `query_hash + language`. Empty results are **not** cached; empty hits are deleted and refetched. |
+| Preview | Card opens a modal. Snippet is labelled preview until insight exists. |
+| Insight | DeepSeek desk briefing: 5–8 anchored bullets, citizen impact, 700–900 char `listen_script`. Up to 3 peer snippets from the same result set. |
+| Validation | Reject `422` if bullets, impact, or script fail thresholds. Quota increments **only** on success. |
+| Listen | Disabled until `listen_script` ≥ 200 in DB. Audio uses that script only — never the Serp snippet. |
+
+### Quotas (per browser `user_id`, 24h)
+
+| Action | Cap | Counts when |
+|---|---|---|
+| Search | 3 | Fresh Serp call (cache hit does not) |
+| Insight | 5 | Validation passes |
+| Audio | 5 | ElevenLabs run |
+
+Cache hits and tab restore do not spend search quota.
+
+### Tables
+
+| Table | Role |
+|---|---|
+| `hindu_articles_cache` | Serp JSON, 6h TTL |
+| `quota_usage` | `search_count`, `summary_count`, `audio_count` |
+| `hindu_user_last_search` | One row per user: query, language, cards |
+| `hindu_article_summaries` | Bullets, `citizen_impact`, `listen_script` |
+| `hindu_audio_cache` | TTS URL per article + language |
+
+Migrations (run in order, do not replay full `schema.sql` on a live DB):
+
+`migration_hindu_news.sql` → `migration_hindu_insight.sql` → `migration_hindu_last_search.sql`
+
+### Edge functions
+
+| Function | Secret | Model / API |
+|---|---|---|
+| `serp-search` | `SERP_API_KEY` | SerpAPI `engine=google`, `google.co.in` |
+| `article-insight` | `DEEPSEEK_API_KEY` | `deepseek-flash` (override `DEEPSEEK_MODEL`) |
+| `generate-audio` | `ELEVENLABS_API_KEY` | EN Sarah / HI multilingual |
+
+```bash
+supabase functions deploy serp-search article-insight generate-audio
+```
+
+Setup detail: [`supabase/functions/HINDU_NEWS_SETUP.md`](supabase/functions/HINDU_NEWS_SETUP.md). Build notes: [`supabase/functions/IMPLEMENTATION_SUMMARY.md`](supabase/functions/IMPLEMENTATION_SUMMARY.md).
+
+Wire synthesis stays on **Anthropic** inside GitHub Actions. Press insight is **DeepSeek** only.
 
 ---
 
-## Setup (one-time)
+## Setup
 
-1. Create / use the Supabase project; run base schema + seeds, then Phase 3 migration + rankings seed, then `supabase/seed_bill_prs_slugs.sql`.
-2. Push to a **public** GitHub repo. Add Actions secrets: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`. Optional: `BUDGET_PDF_URL` for the yearly budget job.
-3. Point Pages (or your host) at the static site; put **anon** URL + key in the frontend (never service_role).
-4. Run **Refresh India Monitor data** once via `workflow_dispatch`. Cron: 06:00 and 18:00 IST.
-5. Rankings: after a monthly run, inspect `rankings_candidates` and promote with `python scripts/promote_ranking.py --candidate-id N` (needs the same Supabase env vars).
-
-Dry-run locally (no writes):
+1. Supabase: base schema + seeds, then Phase 3 SQL, `seed_bill_prs_slugs.sql`, then the three Hindu migrations above.
+2. Public GitHub repo. Actions secrets: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`. Optional: `BUDGET_PDF_URL`.
+3. Edge secrets: `SERP_API_KEY`, `DEEPSEEK_API_KEY`, `ELEVENLABS_API_KEY`. Optional: `DEEPSEEK_MODEL=deepseek-v4-pro`.
+4. Pages hosts `index.html`. Frontend holds the **anon** URL + key only.
+5. Dispatch **Refresh India Monitor data** once. Cron: 06:00 and 18:00 IST.
 
 ```bash
 python scripts/track_bills.py --dry-run
 python scripts/rankings_refresh.py --dry-run --all
 python scripts/budget_parse.py --dry-run --url https://www.indiabudget.gov.in/doc/eb/vol1.pdf
+python scripts/promote_ranking.py --candidate-id N
 ```
+
+### Cost at this scale
+
+| Item | Notes |
+|---|---|
+| Supabase | Free tier; cron keeps the project warm |
+| GitHub Actions | Free on a public repo for these jobs |
+| Anthropic | Wire synthesis only; skipped when ingest is empty |
+| SerpAPI | 100 searches/month free; UI quota is tighter |
+| DeepSeek | Paid per insight; flash by default |
+| ElevenLabs | 10k chars/month free; script capped ~900 chars |
 
 ---
 
-## Forward ahead — not built yet
+## Phases
 
-- **Digital Sansad scrape** — PRS covers status well enough for now; Sansad remains a linked cross-check, not a second parser.
-- **Review gate (optional)** — staging table + approve path if auto-publish for stories becomes too loose.
+| Phase | Shipped |
+|---|---|
+| 1 | Schema, seeds, static UI |
+| 2 | PIB + markets, Claude stations, live read (no rebuild) |
+| 3 | Four newspaper RSS feeds, topic allowlist, `pipeline_health`, bill provenance, rankings categories + `rankings_candidates`, wire topic tabs |
+| 4 | Shared `scripts/common.py`, health strip, PRS bill tracker, monthly ranking fetchers, budget PDF parser |
+| Press | Dual-outlet search, persisted last search, validated insight, listen gated on stored script |
+
+Apply Phase 3 in order: `migration_phase3.sql`, `seed_phase3_rankings.sql`, `migration_phase3_topic.sql`.
+
+---
+
+## Refine next
+
+| Item | Why |
+|---|---|
+| Rename tab to **Press** | UI still says Hindu News while results include Indian Express |
+| Article body extract | Live blogs and thin snippets fail validation; trafilatura (or similar) in `article-insight` would ground bullets without a second Serp call |
+| `DEEPSEEK_MODEL=deepseek-v4-pro` | Denser briefings when flash stays generic; higher token cost |
+| Durable user id | Quota and last-search key off `sessionStorage`; a new browser resets the free tier |
+| HI length checks | English uses an 80-word impact floor; Hindi should use a character or token floor, not English word count |
+| Digital Sansad | PRS is enough for status; Sansad stays a manual link |
+| Story review gate | Optional staging table if auto-publish gets too loose |
+
+---
+
+## Rankings calendar
 
 Rankings release calendar (used by `rankings_registry.py`; publishers shift dates year to year):
 
