@@ -3,14 +3,21 @@
 # India Monitor
 *Facts over fog — the civic signal India can trust.*
 
+<a href="https://www.producthunt.com/products/india-monitor?embed=true&amp;utm_source=badge-featured&amp;utm_medium=badge&amp;utm_campaign=badge-india-monitor" target="_blank" rel="noopener noreferrer"><img alt="India Monitor -  Facts before opinions - the civic signal India  can trust. | Product Hunt" width="250" height="54" src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1276822&amp;theme=light&amp;t=1791752372575"></a>
+
+
+| Live | YouTube | Shorts |
+| --- | --- | --- |
+| [Web App](https://nkovaturient.github.io/India-Monitor/) 🟢 | [Walkthrough](https://www.youtube.com/watch?v=PoRzJuvn1_c) 🎥 | [Quick Demo](https://www.youtube.com/shorts/peoQ8DZZgls) 📝 |
+
+
 [![Live](https://img.shields.io/badge/live-GitHub%20Pages-E08D3C)](https://nkovaturient.github.io/India-Monitor/) [![Phase](https://img.shields.io/badge/phase-4%20%2B%20press%20search-1F6B4A)](https://nkovaturient.github.io/India-Monitor/) [![Stack](https://img.shields.io/badge/stack-static%20%2B%20Supabase-3DDC97)](#architecture)
 
 
 <img width="1733" height="907" alt="India Monitor_ Truth Source Dashboard" src="https://github.com/user-attachments/assets/afb42452-3080-4dee-b40e-e9ed873a08d3" />
 
 **An agentic civic-intelligence system that surfaces only what matters for education, governance, power, and people’s development — with official sources, timelines of how each story got here, and end-to-end insight so Indians speak from data, not rumour or folktale.** 
-
-**Live:** [India-Monitor](https://nkovaturient.github.io/India-Monitor/)
+  
 
 </div>
 
