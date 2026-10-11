@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>India Monitor — Facts before opinions</title>
+<link rel="icon" href="logo.png" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -22,6 +23,7 @@
     background:radial-gradient(ellipse 900px 500px at 8% -10%, rgba(224,141,60,0.07), transparent),
                radial-gradient(ellipse 900px 500px at 95% 0%, rgba(46,158,110,0.06), transparent), var(--bg);
     color:var(--ink); font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; min-height:100vh;
+    display:flex; flex-direction:column;
   }
   ::selection{ background:var(--saffron); color:#12151A; }
   a{ color:var(--navy); }
@@ -33,6 +35,11 @@
     background:rgba(10,12,16,0.72); backdrop-filter:blur(18px); -webkit-backdrop-filter:blur(18px);
     border-bottom:1px solid rgba(255,255,255,0.07);
     box-shadow:0 10px 36px rgba(0,0,0,0.28), 0 1px 0 rgba(255,255,255,0.04) inset;
+    transition:box-shadow .25s ease, border-color .25s ease;
+  }
+  .site-chrome.is-scrolled{
+    box-shadow:0 14px 48px rgba(0,0,0,0.38), 0 1px 0 rgba(255,255,255,0.06) inset;
+    border-bottom-color:rgba(255,255,255,0.1);
   }
   .topbar{ display:flex; align-items:center; justify-content:space-between; padding:16px 28px 12px;
     background:transparent; flex-wrap:wrap; gap:10px; }
@@ -48,6 +55,11 @@
     backdrop-filter:blur(14px);
     -webkit-backdrop-filter:blur(14px);
     box-shadow:0 4px 18px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.1);
+    transition:box-shadow .2s ease, border-color .2s ease;
+  }
+  .topbar-logo{
+    display:block; max-height:40px; width:auto; object-fit:contain; flex-shrink:0;
+    opacity:0.92; filter:drop-shadow(0 2px 10px rgba(0,0,0,0.35));
   }
   .live-badge{ padding:7px 12px; border-radius:999px; letter-spacing:0.6px; display:inline-flex; align-items:center; gap:7px; font-size:11px; color:var(--ink); }
   .live-badge .dot{ width:7px; height:7px; border-radius:50%; background:var(--green); display:inline-block; animation:pulse 2s infinite; box-shadow:0 0 10px rgba(46,158,110,0.55); }
@@ -89,14 +101,16 @@
   }
 
   .app-shell{
-    display:grid; width:100%;
+    flex:1 0 auto; display:grid; width:100%;
+    min-height:calc(100vh - var(--chrome-h));
     grid-template-columns:1fr minmax(0,min(1120px,96vw)) 1fr;
-    align-items:start; perspective:1400px;
+    grid-template-rows:1fr auto;
+    align-items:stretch; perspective:1400px;
   }
   .app-shell.solo{ grid-template-columns:1fr minmax(0,780px) 1fr; }
   main{
-    grid-column:2; min-width:0; max-width:none; margin:0;
-    padding:36px 0 80px; transform:translateZ(0);
+    grid-column:2; grid-row:1; min-width:0; max-width:none; margin:0;
+    padding:36px 0 32px; transform:translateZ(0);
     transition:transform .35s cubic-bezier(.4,0,.2,1);
   }
   .news-columns{
@@ -164,7 +178,7 @@
   .wire-toggle:hover{ transform:translateY(-2px); box-shadow:0 6px 28px rgba(224,141,60,0.2); }
   @media (max-width:1100px){
     .app-shell, .app-shell.solo{ grid-template-columns:1fr; padding:0 clamp(16px,4vw,28px); }
-    main{ grid-column:1; padding:28px 0 80px; }
+    main{ grid-column:1; padding:28px 0 24px; }
     .news-columns{ grid-template-columns:1fr; }
     .wire-sidebar{
       position:fixed; top:0; right:0; bottom:0;
@@ -186,6 +200,22 @@
   .wire-sidebar-close{ display:none; }
   .panel{ display:none; animation:fade .35s ease; } .panel.active{ display:block; }
   @keyframes fade{ from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;} }
+  @keyframes scrollFadeIn{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+  @supports (animation-timeline:view()){
+    .panel.active .section-label,
+    .panel.active .lede,
+    .panel.active .page-title,
+    .panel.active .story,
+    .panel.active .stat-grid,
+    .panel.active .callout,
+    .panel.active .rank-grid > *,
+    .panel.active .hindu-article-card,
+    .panel.active .buzzwords-block{
+      animation:scrollFadeIn linear both;
+      animation-timeline:view();
+      animation-range:entry 0% cover 14%;
+    }
+  }
 
   .lede{ font-family:'Newsreader',serif; font-size:19px; line-height:1.55; color:var(--ink); max-width:680px; margin:0 0 30px; font-weight:400; }
   .lede em{ color:var(--saffron); font-style:normal; }
@@ -320,7 +350,22 @@
   .setup-banner{ background:rgba(192,97,79,0.08); border:1px solid var(--red); border-radius:var(--radius); padding:18px 20px; margin-bottom:28px; font-size:13.5px; line-height:1.7; color:var(--ink); }
   .setup-banner code{ background:var(--panel-2); padding:2px 6px; border-radius:3px; font-family:'JetBrains Mono',monospace; font-size:12px; }
 
-  .footer-note{ margin-top:50px; padding-top:20px; border-top:1px solid var(--border); font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--ink-faint); line-height:1.8; }
+  .footer-note{
+    font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--ink-faint); line-height:1.8;
+  }
+  .site-footer.footer-note{
+    grid-column:1 / -1; grid-row:2; width:100%; margin:0; text-align:center;
+    padding:22px clamp(16px,4vw,28px) max(22px, env(safe-area-inset-bottom, 0px));
+    border:none; border-radius:0; box-shadow:none;
+    background:linear-gradient(180deg, rgba(10,12,16,0) 0%, rgba(10,12,16,0.78) 28%, rgba(8,10,14,0.94) 100%);
+    backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+  }
+  .footer-inner{
+    width:100%; max-width:min(1120px,96vw); margin:0 auto;
+  }
+  .app-shell.solo .footer-inner{ max-width:min(780px,96vw); }
+  .footer-copyright{ margin:0 0 10px; font-family:'Newsreader',serif; font-size:14px; font-weight:500; letter-spacing:0.25px; color:var(--ink-dim); }
+  .footer-feed{ margin:0; font-size:11px; line-height:1.75; max-width:min(640px,100%); margin-left:auto; margin-right:auto; }
   .links-row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
   .link-chip{ font-family:'JetBrains Mono',monospace; font-size:11.5px; color:var(--ink-dim); border:1px solid var(--border); padding:7px 12px; border-radius:20px; }
 
@@ -432,6 +477,7 @@
   .audio-close-btn{ background:none; border:none; color:var(--ink-faint); font-size:22px; cursor:pointer; line-height:1; padding:4px 8px; flex-shrink:0; }
   .audio-close-btn:hover{ color:var(--ink); }
   body.audio-player-open{ padding-bottom:96px; }
+  body.audio-player-open .site-footer.footer-note{ padding-bottom:max(28px, env(safe-area-inset-bottom, 0px)); }
   .auth-chip{
     font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600; letter-spacing:0.5px;
     padding:8px 16px; border-radius:999px; cursor:pointer; transition:transform .2s, box-shadow .2s, border-color .2s, color .2s;
@@ -453,6 +499,24 @@
   .tab.tab-guest-locked{ opacity:0.72; }
   .tab.tab-guest-locked::after{ content:'🔒'; font-size:9px; margin-left:6px; opacity:0.65; }
   .auth-modal-panel{ width:min(400px,100%); }
+  .auth-modal-panel .section-label{ text-align:center; margin-bottom:6px; }
+  .auth-modal-title{ font-size:20px; margin:0 0 2px; padding-right:0; text-align:center; line-height:1.3; }
+  .auth-modal-brand{
+    display:flex; justify-content:center; align-items:center;
+    margin:10px 0 20px; padding:12px 20px 14px;
+    border-radius:12px;
+    border:1px solid rgba(255,255,255,0.06);
+    background:radial-gradient(ellipse 90% 80% at 50% 35%, rgba(224,141,60,0.08) 0%, transparent 58%),
+               radial-gradient(ellipse 70% 55% at 50% 50%, rgba(255,255,255,0.04) 0%, transparent 70%);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+  .auth-modal-logo{
+    display:block; width:auto; height:auto;
+    max-width:min(156px, 52vw); max-height:108px;
+    object-fit:contain;
+    filter:drop-shadow(0 10px 28px rgba(0,0,0,0.5));
+    pointer-events:none; user-select:none;
+  }
   .auth-tabs{ display:flex; gap:8px; margin-bottom:18px; }
   .auth-tab-btn{ flex:1; font-family:'JetBrains Mono',monospace; font-size:11px; padding:10px; border-radius:var(--radius); border:1px solid var(--border); background:rgba(18,21,27,0.55); color:var(--ink-dim); cursor:pointer; }
   .auth-tab-btn.active{ border-color:var(--saffron); color:var(--saffron); background:rgba(224,141,60,0.1); }
@@ -464,7 +528,8 @@
   .auth-msg.error{ color:var(--red); }
   .auth-msg.ok{ color:var(--green); }
   .auth-submit{ width:100%; margin-top:4px; }
-  @media (max-width:700px){ .hindu-header{ flex-direction:column; } .search-box{ flex-direction:column; } .hindu-search-btn{ width:100%; } .audio-player-inner{ gap:10px; padding:10px 12px; } .audio-player-title{ font-size:13px; } .auth-chip{ max-width:120px; } }
+  @media (max-width:700px){ .hindu-header{ flex-direction:column; } .search-box{ flex-direction:column; } .hindu-search-btn{ width:100%; } .audio-player-inner{ gap:10px; padding:10px 12px; } .audio-player-title{ font-size:13px; } .auth-chip{ max-width:120px; } .topbar-logo{ max-height:30px; } .auth-modal-logo{ max-height:92px; max-width:min(140px, 58vw); } .auth-modal-brand{ margin:8px 0 16px; padding:10px 14px 12px; } }
+  @media (min-width:701px){ .topbar-logo{ max-height:44px; } }
 </style>
 </head>
 <body>
@@ -479,6 +544,7 @@
     <button type="button" class="auth-chip" id="auth-chip" aria-label="Account">Sign in</button>
     <span class="live-badge glass-pill"><span class="dot"></span><span id="live-label">LIVE · CONNECTING…</span></span>
     <span class="clock glass-pill clock-pill mono" id="clock">--:--:-- IST</span>
+    <img class="topbar-logo" src="logo.png" alt="India Monitor" width="44" height="44" decoding="async">
   </div>
 </header>
 
@@ -647,11 +713,14 @@
     
     <div id="hindu-results" class="hindu-results-grid" role="region" aria-label="Search results"></div>
   </section>
-
-  <div class="footer-note">
-    <b>Live feed.</b> Refreshed twice daily from official sources only — Press Information Bureau and market data.
-  </div>
 </main>
+
+  <footer class="site-footer footer-note">
+    <div class="footer-inner">
+      <p class="footer-copyright">©Nk 2026 | All Rights Reserved</p>
+      <p class="footer-feed"><b>Live feed.</b> Refreshed twice daily from official sources only — Press Information Bureau and market data.</p>
+    </div>
+  </footer>
 </div>
 
 <div id="audio-player-bar" class="audio-player-bar" hidden aria-hidden="true">
@@ -672,7 +741,10 @@
   <div class="hindu-modal-panel glass auth-modal-panel">
     <button type="button" class="hindu-modal-close" id="auth-modal-close" aria-label="Close">&times;</button>
     <p class="section-label">Account</p>
-    <h3 id="auth-modal-title" class="hindu-modal-title" style="font-size:20px;margin-bottom:14px;">Sign in</h3>
+    <h3 id="auth-modal-title" class="hindu-modal-title auth-modal-title">Sign in</h3>
+    <div class="auth-modal-brand">
+      <img class="auth-modal-logo" src="logo.png" alt="" width="156" height="108" decoding="async">
+    </div>
     <div class="auth-tabs" role="tablist">
       <button type="button" class="auth-tab-btn active" data-auth-mode="signin" role="tab" aria-selected="true">Sign in</button>
       <button type="button" class="auth-tab-btn" data-auth-mode="signup" role="tab" aria-selected="false">Create account</button>
@@ -739,7 +811,7 @@ function requestTabAccess(tabId){
   const msg = document.getElementById('auth-msg');
   if (msg){
     msg.className = 'auth-msg';
-    msg.textContent = 'Sign in or create an account to open this section.';
+    msg.textContent = 'Sign in or Create an Account to open this section.';
   }
   return false;
 }
@@ -809,12 +881,12 @@ function setAuthModeUi(mode){
   const submit = document.getElementById('auth-submit');
   const pw = document.getElementById('auth-password');
   if (mode === 'signup'){
-    title.textContent = 'Create account';
+    title.textContent = 'Create Account';
     submit.textContent = 'Sign up';
     if (pw) pw.autocomplete = 'new-password';
   } else {
     title.textContent = 'Sign in';
-    submit.textContent = 'Sign in';
+    submit.textContent = 'Login';
     if (pw) pw.autocomplete = 'current-password';
   }
 }
@@ -2150,6 +2222,13 @@ async function boot(){
   if (isAuthenticated() && document.getElementById('news-buzzwords')?.classList.contains('active')) loadBuzzwords();
 }
 boot();
+(function(){
+  var chrome = document.querySelector('.site-chrome');
+  if (!chrome) return;
+  function sync(){ chrome.classList.toggle('is-scrolled', window.scrollY > 6); }
+  sync();
+  window.addEventListener('scroll', sync, { passive: true });
+})();
 </script>
 </body>
 </html>
