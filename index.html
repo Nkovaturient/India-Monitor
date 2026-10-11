@@ -1607,6 +1607,8 @@ const HINDU_I18N = {
     close: 'Close',
     previewNote: 'Preview from search snippet — not yet verified against the full article.',
     searchPlaceholder: 'Search...',
+    noPressHits: 'No matching articles on The Hindu or Indian Express for this query. Try Indian policy, economy, or national-news phrasing.',
+    noPressHitsShort: 'Still no Hindu/Express coverage — try fewer words or a related India headline topic.',
     srcHindu: 'The Hindu',
     srcIe: 'Indian Express',
     buzzwordsLabel: 'Buzz in Indian news this week',
@@ -1634,6 +1636,8 @@ const HINDU_I18N = {
     close: 'बंद करें',
     previewNote: 'खोज स्निपेट से पूर्वावलोकन — पूरे लेख से अभी सत्यापित नहीं।',
     searchPlaceholder: 'खोजें...',
+    noPressHits: 'इस खोज के लिए द हिंदू या इंडियन एक्सप्रेस पर कोई लेख नहीं मिला। भारतीय नीति/अर्थव्यवस्था/राष्ट्रीय समाचार शब्द आज़माएँ।',
+    noPressHitsShort: 'अभी भी कोई कवरेज नहीं — कम शब्द या संबंधित भारतीय शीर्षक आज़माएँ।',
     srcHindu: 'द हिंदू',
     srcIe: 'इंडियन एक्सप्रेस',
     buzzwordsLabel: 'इस सप्ताह भारतीय समाचार — बज़वर्ड',
@@ -2169,10 +2173,9 @@ async function searchHinduNews(){
       const tried = data.searched_query && data.searched_query !== query
         ? data.searched_query
         : (data.searched_query || query);
+      const retried = Boolean(tried && tried !== query);
       const hint = noCharge
-        ? (currentLanguage === 'hi'
-          ? 'छोटा शब्द समूह आज़माएँ।'
-          : 'Try a shorter phrase or search again...')
+        ? (retried ? hinduT('noPressHitsShort') : hinduT('noPressHits'))
         : (currentLanguage === 'hi' ? 'कोई लेख नहीं मिला' : 'No articles found');
       const sub = tried && tried !== query
         ? `<br><span style="font-size:12px;color:var(--ink-faint)">${esc(tried)}</span>`

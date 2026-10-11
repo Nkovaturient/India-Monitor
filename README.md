@@ -153,7 +153,7 @@ Migrations (run in order, do not replay full `schema.sql` on a live DB):
 
 | Function | Secret | Model / API |
 |---|---|---|
-| `serp-search` | `SERP_API_KEY` | SerpAPI `engine=google`, `google.co.in` |
+| `serp-search` | `EXA_API_KEY` (preferred) and/or `SERP_API_KEY` | Exa `POST /search` (`type: instant`, `contents.highlights: true`, `includeDomains` Hindu+IE); Serp fallback · **7s** timeout per provider call |
 | `article-insight` | `DEEPSEEK_API_KEY` | `deepseek-flash` (override `DEEPSEEK_MODEL`) |
 | `generate-audio` | `ELEVENLABS_API_KEY` | EN Sarah / HI multilingual |
 | `buzzwords-weekly` | `SERP_API_KEY`, `DEEPSEEK_API_KEY` | Weekly buzz badges · 3-day cache |
@@ -172,7 +172,7 @@ Wire synthesis stays on **Anthropic** inside GitHub Actions. Press insight is **
 
 1. Supabase: base schema + seeds, then Phase 3 SQL, `seed_bill_prs_slugs.sql`, then Hindu migrations (`migration_hindu_news.sql` through `migration_hindu_buzzwords.sql`).
 2. Public GitHub repo. Actions secrets: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`. Optional: `BUDGET_PDF_URL`.
-3. Edge secrets: `SERP_API_KEY`, `DEEPSEEK_API_KEY`, `ELEVENLABS_API_KEY`. Optional: `DEEPSEEK_MODEL=deepseek-v4-pro`.
+3. Edge secrets (Supabase → Project Settings → Edge Functions): `EXA_API_KEY` (recommended; copy from [Exa dashboard](https://dashboard.exa.ai/) — same as local `.env`), `SERP_API_KEY` (fallback), `DEEPSEEK_API_KEY`, `ELEVENLABS_API_KEY`. Optional: `DEEPSEEK_MODEL=deepseek-v4-pro`. Local `.env` is for deploy scripts only; the browser never sees these keys.
 4. Pages hosts `index.html` and `logo.png` (navbar + favicon). Frontend holds the **anon** URL + key only.
 5. Dispatch **Refresh India Monitor data** once. Cron: 06:00 and 18:00 IST.
 
