@@ -174,7 +174,8 @@ Wire synthesis stays on **Anthropic** inside GitHub Actions. Press insight is **
 2. Public GitHub repo. Actions secrets: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`. Optional: `BUDGET_PDF_URL`.
 3. Edge secrets (Supabase → Project Settings → Edge Functions): `EXA_API_KEY` (recommended; copy from [Exa dashboard](https://dashboard.exa.ai/) — same as local `.env`), `SERP_API_KEY` (fallback), `DEEPSEEK_API_KEY`, `ELEVENLABS_API_KEY`. Optional: `DEEPSEEK_MODEL=deepseek-v4-pro`. Local `.env` is for deploy scripts only; the browser never sees these keys.
 4. Pages hosts `index.html` and `logo.png` (navbar + favicon). Frontend holds the **anon** URL + key only.
-5. Dispatch **Refresh India Monitor data** once. Cron: 06:00 and 18:00 IST.
+5. **Mobile / GitHub Pages:** smoke-test at ~390px and ≤1100px (e.g. iPhone, narrow tablet). Sticky header + horizontal tab scroll. On **News** at ≤1100px, use the **Wire feed** FAB (bottom-right; tap again to close). Drawer sits below the header so topic filters stay visible; listen audio lifts the FAB above the player bar.
+6. Dispatch **Refresh India Monitor data** once. Cron: 06:00 and 18:00 IST.
 
 ```bash
 python scripts/track_bills.py --dry-run

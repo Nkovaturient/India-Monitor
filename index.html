@@ -16,7 +16,11 @@
     --green:#2E9E6E; --green-dim:#1D5E43;
     --navy:#5D82BE; --red:#C0614F; --radius:3px;
     --chrome-h:118px;
+    --bottom-safe:env(safe-area-inset-bottom,0px);
+    --audio-bar-h:88px;
   }
+  .table-scroll{ overflow-x:auto; -webkit-overflow-scrolling:touch; margin:0 0 18px; border:1px solid var(--border); border-radius:var(--radius); }
+  .table-scroll table{ margin:0; min-width:520px; }
   *{box-sizing:border-box;}
   body{
     margin:0;
@@ -87,7 +91,10 @@
   .tabs{
     display:flex; gap:4px; padding:4px 24px 0; overflow-x:auto;
     background:transparent;
+    -webkit-overflow-scrolling:touch;
+    scrollbar-width:none;
   }
+  .tabs::-webkit-scrollbar{ display:none; }
   .tab{
     background:rgba(18,21,27,0.28); border:1px solid transparent; border-bottom:none;
     color:var(--ink-dim); font-family:'JetBrains Mono',monospace; font-size:12px; letter-spacing:1px;
@@ -169,26 +176,46 @@
   .wire-sidebar .wire-card{ padding:12px 14px; }
   .wire-sidebar .wire-card a{ font-size:13px; }
   .wire-toggle{
-    display:none; position:fixed; bottom:20px; right:20px; z-index:60;
+    display:none; position:fixed; z-index:60;
+    right:max(16px,env(safe-area-inset-right,0px));
+    bottom:calc(16px + var(--bottom-safe));
     font-family:'JetBrains Mono',monospace; font-size:11px; letter-spacing:0.5px;
     background:rgba(18,21,27,0.85); backdrop-filter:blur(12px); border:1px solid rgba(224,141,60,0.35);
-    color:var(--saffron); padding:10px 16px; border-radius:24px; cursor:pointer;
-    box-shadow:0 4px 20px rgba(0,0,0,0.4); transition:transform .2s, box-shadow .2s;
+    color:var(--saffron); padding:10px 16px; min-height:44px; border-radius:24px; cursor:pointer;
+    box-shadow:0 4px 20px rgba(0,0,0,0.4); transition:transform .2s, box-shadow .2s, bottom .28s ease;
+  }
+  body.audio-player-open .wire-toggle{
+    bottom:calc(var(--audio-bar-h) + var(--bottom-safe) + 12px);
   }
   .wire-toggle:hover{ transform:translateY(-2px); box-shadow:0 6px 28px rgba(224,141,60,0.2); }
   @media (max-width:1100px){
-    .app-shell, .app-shell.solo{ grid-template-columns:1fr; padding:0 clamp(16px,4vw,28px); }
-    main{ grid-column:1; padding:28px 0 24px; }
+    .app-shell, .app-shell.solo{ grid-template-columns:1fr; padding:0 clamp(16px,4vw,28px); perspective:none; }
+    main{ grid-column:1; padding:28px 0 24px; transform:none; }
     .news-columns{ grid-template-columns:1fr; }
     .wire-sidebar{
-      position:fixed; top:0; right:0; bottom:0;
-      height:100vh; max-height:100vh; width:min(380px,92vw); border-radius:0;
-      transform:translateX(100%) translateZ(0); border-left:1px solid rgba(255,255,255,0.1);
-      z-index:45;
+      position:fixed; top:var(--chrome-h); right:0; bottom:0;
+      height:calc(100vh - var(--chrome-h)); max-height:calc(100vh - var(--chrome-h));
+      width:min(380px,92vw); border-radius:0;
+      transform:translateX(100%);
+      border-left:1px solid rgba(255,255,255,0.12);
+      z-index:48;
+      background:var(--panel);
+      backdrop-filter:none; -webkit-backdrop-filter:none;
+      box-shadow:-12px 0 40px rgba(0,0,0,0.45);
     }
-    .wire-sidebar.open{ transform:translateX(0) translateZ(0); }
+    .wire-sidebar.open{ transform:translateX(0); }
+    .wire-sidebar-head{ padding-top:16px; }
+    .wire-sidebar-body{ padding-top:12px; }
+    .wire-sidebar #wire-topic-filters,
+    .wire-sidebar #wire-filters{
+      flex-shrink:0;
+    }
+    .wire-sidebar .glass-filters{
+      backdrop-filter:none; -webkit-backdrop-filter:none;
+      background:var(--panel-2);
+    }
     .wire-sidebar-backdrop{
-      display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); backdrop-filter:blur(2px); z-index:39;
+      display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:39;
     }
     .wire-sidebar-backdrop.open{ display:block; }
     .wire-toggle{ display:block; }
@@ -249,7 +276,6 @@
   .rail p{ margin:0; font-size:14px; line-height:1.55; color:var(--ink); max-width:600px; }
 
   .split{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin:22px 0; }
-  @media (max-width:700px){ .split{ grid-template-columns:1fr; } }
   .box{ background:var(--panel-2); border:1px solid var(--border); border-radius:var(--radius); padding:16px 18px; }
   .box h4{ margin:0 0 10px; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; font-family:'JetBrains Mono',monospace; color:var(--ink-faint); }
   .box p, .box li{ font-size:13.5px; line-height:1.6; color:var(--ink-dim); margin:0 0 8px; }
@@ -261,7 +287,6 @@
   .src{ font-family:'JetBrains Mono',monospace; font-size:11px; color:var(--ink-faint); margin-top:18px; }
 
   .stat-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--border); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; margin-bottom:28px; }
-  @media (max-width:700px){ .stat-grid{ grid-template-columns:repeat(2,1fr); } }
   .stat{ background:var(--panel); padding:18px 16px; }
   .stat .v{ font-family:'Newsreader',serif; font-size:26px; font-weight:600; color:var(--ink); }
   .stat .l{ font-family:'JetBrains Mono',monospace; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--ink-faint); margin-top:4px; }
@@ -330,7 +355,6 @@
   .topic-badge.signal{ color:var(--green); border-color:var(--green-dim); background:rgba(46,158,110,0.1); animation:pulse 2s infinite; }
 
   .rank-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
-  @media (max-width:700px){ .rank-grid{ grid-template-columns:1fr; } }
   .rank-card-glass{ border-radius:var(--radius); padding:16px 18px; display:flex; flex-direction:column; gap:8px; transition:transform .2s ease, border-color .2s ease; animation:cardIn .45s ease backwards; }
   .rank-card-glass:hover{ transform:translateY(-3px); border-color:rgba(255,255,255,0.14); }
   .rank-card-glass .rank-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
@@ -476,8 +500,8 @@
   .audio-speed-btn:hover{ border-color:var(--saffron-dim); color:var(--saffron); }
   .audio-close-btn{ background:none; border:none; color:var(--ink-faint); font-size:22px; cursor:pointer; line-height:1; padding:4px 8px; flex-shrink:0; }
   .audio-close-btn:hover{ color:var(--ink); }
-  body.audio-player-open{ padding-bottom:96px; }
-  body.audio-player-open .site-footer.footer-note{ padding-bottom:max(28px, env(safe-area-inset-bottom, 0px)); }
+  body.audio-player-open{ padding-bottom:calc(var(--audio-bar-h) + var(--bottom-safe) + 12px); }
+  body.audio-player-open .site-footer.footer-note{ padding-bottom:max(28px,var(--bottom-safe)); }
   .auth-chip{
     font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:600; letter-spacing:0.5px;
     padding:8px 16px; border-radius:999px; cursor:pointer; transition:transform .2s, box-shadow .2s, border-color .2s, color .2s;
@@ -528,8 +552,84 @@
   .auth-msg.error{ color:var(--red); }
   .auth-msg.ok{ color:var(--green); }
   .auth-submit{ width:100%; margin-top:4px; }
-  @media (max-width:700px){ .hindu-header{ flex-direction:column; } .search-box{ flex-direction:column; } .hindu-search-btn{ width:100%; } .audio-player-inner{ gap:10px; padding:10px 12px; } .audio-player-title{ font-size:13px; } .auth-chip{ max-width:120px; } .topbar-logo{ max-height:30px; } .auth-modal-logo{ max-height:92px; max-width:min(140px, 58vw); } .auth-modal-brand{ margin:8px 0 16px; padding:10px 14px 12px; } }
   @media (min-width:701px){ .topbar-logo{ max-height:44px; } }
+
+  /* --- Mobile: ≤768px --- */
+  @media (max-width:768px){
+    .topbar{ padding:12px 16px 10px; gap:8px; }
+    .brand-text h1{ font-size:18px; }
+    .brand-text p{ font-size:10px; letter-spacing:1.2px; }
+    .meta{ gap:8px; width:100%; justify-content:flex-start; }
+    .auth-chip{ max-width:min(140px,42vw); min-height:44px; display:inline-flex; align-items:center; }
+    .live-badge,.clock-pill{ min-height:36px; }
+    .topbar-logo{ max-height:30px; min-width:30px; }
+    .health-strip{ padding:6px 16px 8px; }
+    .health-when{ display:none; }
+    .tabs{
+      padding:4px 16px 0; gap:3px;
+      scroll-snap-type:x proximity;
+      scroll-padding-inline:16px;
+      mask-image:linear-gradient(90deg,transparent 0,#000 12px,#000 calc(100% - 12px),transparent 100%);
+    }
+    .tab{
+      scroll-snap-align:start;
+      font-size:10.5px; letter-spacing:0.7px;
+      padding:10px 12px 11px;
+      min-height:44px;
+    }
+    .lede{ font-size:clamp(16px,4.2vw,19px); margin-bottom:22px; }
+    .page-title{ font-size:clamp(22px,5.5vw,28px); }
+    .split{ grid-template-columns:1fr; }
+    .stat-grid{ grid-template-columns:repeat(2,1fr); }
+    .rank-grid{ grid-template-columns:1fr; }
+    .hindu-header{ flex-direction:column; }
+    .search-box{ flex-direction:column; }
+    .hindu-search-btn{ width:100%; min-height:44px; }
+    .hindu-modal{
+      align-items:flex-start;
+      padding:max(12px,env(safe-area-inset-top,0px)) 12px calc(12px + var(--bottom-safe));
+    }
+    .hindu-modal-panel{
+      max-height:min(92dvh,900px);
+      padding:18px 16px 16px;
+    }
+    .hindu-modal-title{ font-size:19px; margin-bottom:14px; }
+    .hindu-modal-actions{
+      flex-direction:column; align-items:stretch; gap:10px;
+    }
+    .hindu-modal-actions .hindu-btn-primary,
+    .hindu-modal-actions .hindu-btn-secondary,
+    .hindu-modal-actions .listen-btn{
+      width:100%; justify-content:center; min-height:44px;
+    }
+    .auth-field input{ font-size:16px; }
+    .auth-modal-logo{ max-height:92px; max-width:min(140px,58vw); }
+    .auth-modal-brand{ margin:8px 0 16px; padding:10px 14px 12px; }
+    .audio-player-bar{ --audio-bar-h:108px; padding:10px 12px calc(10px + var(--bottom-safe)); }
+    .audio-player-inner{
+      display:grid;
+      grid-template-columns:44px 1fr auto auto;
+      grid-template-areas:
+        "play title title close"
+        "seek seek seek speed";
+      gap:8px 10px;
+      padding:10px 12px;
+    }
+    .audio-play-btn{ grid-area:play; }
+    .audio-close-btn{ grid-area:close; }
+    .audio-speed-btn{ grid-area:speed; align-self:center; }
+    .audio-player-meta{ display:contents; }
+    .audio-player-title{ grid-area:title; align-self:center; margin:0; font-size:13px; }
+    .audio-seek{ grid-area:seek; }
+    .audio-time{ display:none; }
+  }
+
+  @media (max-width:480px){
+    .tab{ font-size:10px; padding:9px 10px 10px; }
+    .clock-pill .clock-seconds{ display:none; }
+    .audio-speed-btn{ font-size:10px; padding:6px 8px; min-width:40px; }
+    .audio-player-bar{ --audio-bar-h:100px; }
+  }
 </style>
 </head>
 <body>
@@ -563,7 +663,7 @@
 </div>
 
 <div class="wire-sidebar-backdrop" id="wire-backdrop"></div>
-<button class="wire-toggle" id="wire-toggle" type="button" aria-label="Open wire feed">Wire feed</button>
+<button class="wire-toggle" id="wire-toggle" type="button" aria-expanded="false" aria-controls="wire-sidebar" aria-label="Open wire feed">Wire feed</button>
 
 <div class="app-shell">
 <main>
@@ -588,8 +688,7 @@
         </div>
         <div class="wire-sidebar-body">
           <div class="filter-row glass-filters glass" id="wire-topic-filters">
-            <button class="filter-btn active" data-topic="high">High signal</button>
-            <button class="filter-btn" data-topic="governance">Governance</button>
+            <button class="filter-btn active" data-topic="governance">Governance</button>
             <button class="filter-btn" data-topic="education">Education</button>
             <button class="filter-btn" data-topic="health">Health</button>
             <button class="filter-btn" data-topic="economy">Economy</button>
@@ -623,7 +722,7 @@
   <section id="parliament" class="panel">
     <p class="section-label">18th Lok Sabha</p>
     <h2 class="page-title">Bill tracker</h2>
-    <table><thead><tr><th>Bill</th><th>Touches</th><th>Stage</th></tr></thead><tbody id="bill-table-body"></tbody></table>
+    <div class="table-scroll"><table><thead><tr><th>Bill</th><th>Touches</th><th>Stage</th></tr></thead><tbody id="bill-table-body"></tbody></table></div>
     <p class="src" id="bills-checked"></p>
     <div class="links-row">
       <span class="link-chip"><a href="https://sansad.in" target="_blank">Digital Sansad</a> </span>
@@ -1004,7 +1103,7 @@ if (!configured) {
 function tick(){
   const ist = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Kolkata'}));
   const p = n => String(n).padStart(2,'0');
-  document.getElementById('clock').textContent = `${p(ist.getHours())}:${p(ist.getMinutes())}:${p(ist.getSeconds())} IST`;
+  document.getElementById('clock').innerHTML = `${p(ist.getHours())}:${p(ist.getMinutes())}<span class="clock-seconds">:${p(ist.getSeconds())}</span> IST`;
 }
 tick(); setInterval(tick,1000);
 
@@ -1038,13 +1137,21 @@ function openWireDrawer(){
   wireSidebar.classList.add('open');
   wireBackdrop.classList.add('open');
   document.body.style.overflow = 'hidden';
+  wireToggle.setAttribute('aria-expanded', 'true');
+  wireToggle.setAttribute('aria-label', 'Close wire feed');
 }
 function closeWireDrawer(){
   wireSidebar.classList.remove('open');
   wireBackdrop.classList.remove('open');
   document.body.style.overflow = '';
+  wireToggle.setAttribute('aria-expanded', 'false');
+  wireToggle.setAttribute('aria-label', 'Open wire feed');
 }
-wireToggle.addEventListener('click', openWireDrawer);
+function toggleWireDrawer(){
+  if (wireSidebar.classList.contains('open')) closeWireDrawer();
+  else openWireDrawer();
+}
+wireToggle.addEventListener('click', toggleWireDrawer);
 wireClose.addEventListener('click', closeWireDrawer);
 wireBackdrop.addEventListener('click', closeWireDrawer);
 
@@ -1058,6 +1165,7 @@ function activateAppTab(tabId, options = {}){
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
   btn.classList.add('active');
   panel.classList.add('active');
+  btn.scrollIntoView({ inline: 'nearest', block: 'nearest', behavior: 'smooth' });
   setWireSidebarVisible(tabId === 'news');
   if (tabId === 'hindu-news') loadLastHinduSearch();
   if (tabId === 'news-buzzwords') loadBuzzwords();
@@ -1214,16 +1322,13 @@ async function loadStories(){
 
 // ----------------------- NEWS: wire feed -----------------------
 let currentWireRange = 1;
-let currentWireTopic = 'high';
+let currentWireTopic = 'governance';
 let wireCache = [];
 
 function renderWire(items){
   const list = document.getElementById('wire-list');
   if (!items.length) {
-    const hint = currentWireTopic === 'high'
-      ? 'No high-signal items in this window — try a topic tab or widen the time range.'
-      : 'Nothing in this topic yet. Try "All" or "All time".';
-    list.innerHTML = `<p class="empty">${hint}</p>`;
+    list.innerHTML = '<p class="empty">Nothing in this topic yet. Try "All" or "All time".</p>';
     return;
   }
   list.innerHTML = items.map((it, i) => {
@@ -1245,8 +1350,7 @@ function renderWire(items){
 
 function applyWireFilters(){
   let items = wireCache;
-  if (currentWireTopic === 'high') items = items.filter(isHighSignal);
-  else if (currentWireTopic !== 'all') items = items.filter(it => itemTopic(it) === currentWireTopic);
+  if (currentWireTopic !== 'all') items = items.filter(it => itemTopic(it) === currentWireTopic);
   renderWire(items);
 }
 
